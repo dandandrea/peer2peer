@@ -31,6 +31,11 @@ public class Parser {
         return null;
     }
 
+    // Getter for parsedList
+    public List<List<String>> getParsedList() {
+        return parsedList;
+    }
+
     // Parse the file
     private void parseFile(String fileName) throws FileNotFoundException {
         // Get a File object for the file to be parsed
