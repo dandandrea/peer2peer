@@ -1,0 +1,243 @@
+import java.io.*;
+import java.util.concurrent.*;
+import java.io.*;
+import java.util.*;
+import java.lang.*;
+
+// The main class for the peer2peer application
+public class Peer2Peer {
+    // Peer ID
+    private int peerId;
+
+    // Peer common configuration properties
+    private int numberOfPreferredNeighbors;
+    private int unchokingInterval;
+    private int optimisticUnchokingInterval;
+    private String fileName;
+    private int fileSize;
+    private int pieceSize;
+
+    // PeerInfo List
+    private List<PeerInfo> peerInfoList;
+
+    // Constructor
+    public Peer2Peer(int peerId) throws IOException, Peer2PeerException {
+        // Get the peer ID
+        this.peerId = peerId;
+
+        // Parse Common.cfg
+        // This sets all of the various Common.cfg-related class properties
+        parseCommonConfigFile();
+
+        // Validate Common.cfg
+        validateCommonConfig();
+
+        // Parse PeerInfo.cfg
+        parsePeerInfoFile();
+
+		// Validate PeerInfo.cfg
+		validatePeerInfoFile();
+
+        // Instantiate the log FileWriter
+        logFileWriter = new FileWriter("log_peer_" + peerId + ".log", true);
+    }
+
+	// Main entry point for running the peer2peer application
+    public static void main(String[] args) throws IOException, InterruptedException, ExecutionException, Peer2PeerException {
+		// Get the peer ID from the command-line arguments
+		int peerId = getPeerIdFromArguments(args);
+
+		// Instantiate a Peer2Peer object
+		Peer2Peer peer2peer = new Peer2Peer(peerId);
+
+		NonblockingConnection nonblockingConnection = new NonblockingConnection("localhost", 80);
+
+		while (true) {
+		    String data = nonblockingConnection.getData();
+			if (data != null) {
+				System.out.println("Got data:\n" + data);
+			}
+
+			try {
+				System.out.println("Sleeping after getData() call");
+				Thread.sleep(2000);
+			}
+			catch (Exception e) {}
+		}
+	}
+
+    // This validates that the file specified in Common.cfg actually exists
+    // and is of the specified size
+    private void validateCommonConfig() throws Peer2PeerException {
+        // Validate that the file exists
+        File file = new File(fileName);
+        if (file.exists() == false) {
+            String message = "ERROR: Cannot read from file specified in Common.cfg (" + fileName + ")";
+            message = message + " " + "Check \"FileName\" parameter";
+			throw new Peer2PeerException(message);
+        }
+
+        // Validate that the file is of the specified size
+        if (file.length() != fileSize) {
+            String message = "ERROR: File specified in Common.cfg is not of specified size";
+            message = message + " " + "Specified: " + fileSize + ", actual: " + file.length();
+			throw new Peer2PeerException(message);
+        }
+    }
+
+    private void parsePeerInfoFile() throws Peer2PeerException {
+        // Instantiate a Parser
+        Parser parser = null;
+        try {
+            parser = new Parser("PeerInfo.cfg");
+        }
+        catch (FileNotFoundException e) {
+            throw new Peer2PeerException("ERROR: PeerInfo.cfg file does not exist");
+        }
+
+        // Instantiate the peer info List
+        peerInfoList = new ArrayList<PeerInfo>();
+
+        // Process the parsed List
+        for (int i = 0; i < parser.getParsedList().size(); i++) {
+            // Verify that there are only 4 items in each List within the parsed List
+            if (parser.getParsedList().get(i).size() != 4) {
+                throw new Peer2PeerException("ERROR: Found a PeerInfo.cfg line which does not have 4 items");
+            }
+
+            // Validate that the 1st, 3rd, and 4th items are integers
+            mustBeInteger(parser.getParsedList().get(i).get(0), 1);
+            mustBeInteger(parser.getParsedList().get(i).get(2), 3);
+            mustBeInteger(parser.getParsedList().get(i).get(3), 4);
+
+            // If we made it here then we have a valid PeerInfo item
+            // Instantiate a PeerInfo object and add it to the peer info List
+            PeerInfo peerInfo = new PeerInfo();
+            peerInfo.setPeerId(Integer.parseInt(parser.getParsedList().get(i).get(0)));
+            peerInfo.setHostname(parser.getParsedList().get(i).get(1));
+            peerInfo.setPort(Integer.parseInt(parser.getParsedList().get(i).get(2)));
+            peerInfo.setHasFile(Integer.parseInt(parser.getParsedList().get(i).get(3)));
+            peerInfoList.add(peerInfo);
+        }
+    }
+
+    // This validates that the peerId specified in the constructor is found
+    // in the peers specified in the PeerInfo.cfg file
+    private void validatePeerInfoFile() throws Peer2PeerException {
+		// Whether or not we found the peerId
+		boolean found = false;
+
+		// Check all items in the PeerInfo list for our peerId
+		for (int i = 0; i < peerInfoList.size(); i++) {
+			// Is this our peerId?
+			if (peerInfoList.get(i).getPeerId() == peerId) {
+				// Found it
+				found = true;
+				break;
+			}
+		}
+
+		// Throw an exception if we didn't find the peerId
+		if (found == false) {
+			throw new Peer2PeerException("ERROR: peerId specified on command-line not found in PeerInfo.cfg");
+		}
+    }
+
+    // Helper method for dealing with determining if a String can be cast to an int
+    private void mustBeInteger(String candidateString, int itemNumber) throws Peer2PeerException {
+        try {
+            Integer.parseInt(candidateString);
+        }
+        catch (NumberFormatException e) {
+            throw new Peer2PeerException("ERROR: Item number " + itemNumber + " must be an integer value");
+        }
+    }
+
+    // Parse Common.cfg
+    private void parseCommonConfigFile() throws Peer2PeerException {
+        // Instantiate a Parser
+        Parser parser = null;
+        try {
+            parser = new Parser("Common.cfg");
+        }
+        catch (FileNotFoundException e) {
+            throw new Peer2PeerException("ERROR: Common.cfg file does not exist");
+        }
+
+        // Now we have a parsedList and we can get the configuration properties from it
+        numberOfPreferredNeighbors = Integer.parseInt(getCommonConfigItem("NumberOfPreferredNeighbors", true, parser));
+        unchokingInterval = Integer.parseInt(getCommonConfigItem("UnchokingInterval", true, parser));
+        optimisticUnchokingInterval = Integer.parseInt(getCommonConfigItem("OptimisticUnchokingInterval", true, parser));
+        fileName = getCommonConfigItem("FileName", false, parser);
+        fileSize = Integer.parseInt(getCommonConfigItem("FileSize", true, parser));
+        pieceSize = Integer.parseInt(getCommonConfigItem("PieceSize", true, parser));
+    }
+
+    private String getCommonConfigItem(String key, boolean isInteger, Parser parser) throws Peer2PeerException {
+        // Try to get the item from the parser by its key
+        List<String> tokenList = parser.getListByKey(key);
+
+        // Was the key not found?
+        if (tokenList == null) {
+            throw new Peer2PeerException("ERROR: Could not get " + key + " from Common.cfg");
+        }
+
+        // Is the item returned by the key a list with 2 values?
+        if (tokenList.size() != 2) {
+            throw new Peer2PeerException("ERROR: Encountered invalid format when looking up " + key);
+        }
+
+        // Do we need to check that the value is a valid integer?
+        if (isInteger == true) {
+            try {
+                Integer.parseInt(tokenList.get(1));
+            }
+            catch (NumberFormatException e) {
+                throw new Peer2PeerException("ERROR: " + key + " is not in a valid integer format");
+            }
+        }
+
+        // If we made it here then we have a valid value
+        // Go ahead and return it
+        return tokenList.get(1);
+    }
+
+    // Validate command-line arguments
+    // Return peer ID if valid
+    static private int getPeerIdFromArguments(String[] args) throws Peer2PeerException {
+        // Must have one command-line argument
+        if (args.length != 1) {
+            throw new Peer2PeerException("Usage: java PeerProcess <Peer ID>");
+        }
+
+        // Validate that command-line argument is an integer
+        // Also return the peer ID here if the argument is valid
+        int peerId = 0;
+        try {
+            peerId= Integer.parseInt(args[0]);
+        }
+        catch (NumberFormatException e) {
+            throw new Peer2PeerException("ERROR: Peer ID must be an integer");
+        }
+
+        // Return the peer ID
+        return peerId;
+    }
+
+    // Write to log (with a timestamp)
+    private void writeToLog(String message) throws IOException {
+        // Get current date and time
+        GregorianCalendar date = new GregorianCalendar();
+        int day = date.get(Calendar.DAY_OF_MONTH);
+        int month = date.get(Calendar.MONTH);
+        int year = date.get(Calendar.YEAR);
+        int second = date.get(Calendar.SECOND);
+        int minute = date.get(Calendar.MINUTE);
+        int hour = date.get(Calendar.HOUR);
+        String timestamp = month + "/" + day + "/" + year + " " + hour + ":" + minute + ":" + second;
+
+        // Write to the log and flush (the toilet)
+        logFileWriter.write("[" + timestamp + "]: " + message + "\n");
+        logFileWriter.flush();
+    }
+}

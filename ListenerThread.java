@@ -31,8 +31,12 @@ public class ListenerThread
 				System.out.println("Waiting for Connections!");
 				while(true)
 				{
+					System.out.println("At top of while(true) loop");
+
 					Future<AsynchronousSocketChannel> asynchronousSocketChannelFuture =
 				        asynchronousServerSocketChannel.accept();		
+
+					System.out.println("Made it here");
 
 					try (AsynchronousSocketChannel asynchronousSocketChannel = asynchronousSocketChannelFuture.get())
 					{
@@ -98,68 +102,4 @@ public class ListenerThread
 	                throw new UnsupportedOperationException("read failed!");
 	        }
 	}		
-
-		/*// Implementation of CompletionHandler for AsynchronousSocketChannel.read()
-        	private static class Handler implements CompletionHandler<Integer, ByteBuffer> 
-		{
-		        // The state of the handler
-		        private boolean completed = false;
-		        private boolean isDisconnected = false;
-
-		        // Called when read() succeeds
-		        public void completed(Integer result, ByteBuffer buffer) 
-			{
-		                // Are we disconnected? Result length will be -1 if disconnected
-		                if (result == -1)
-				{
-		                        isDisconnected = true;
-		                }
-
-		                // Clear the buffer
-		                buffer.clear();
-
-		                // Get the data
-		                if (isDisconnected == false) 
-				{
-		                        // Set data
-		                        String data = Charset.defaultCharset().decode(buffer).toString();
-		                }
-			        
-			        // Set completed to true
-			        completed = true;
-
-			        // "Flip" the buffer
-			        buffer.flip();
-		        }
-
-		        // Called when a failure occurs
-		        public void failed(Throwable exception, ByteBuffer buffer) 
-			{
-		                // Set completed to false
-		                completed = false;
-
-		                // Display an error message and thrown an exception
-		                System.out.println("***** FAIL in Handler.failed() *****");
-		                throw new UnsupportedOperationException("read() failed!");
-		        }
-
-		        // Getter for completed
-		        public boolean getCompleted() 
-			{
-		                return completed;
-		        }
-
-		        // Reset the completed flag
-		        public void resetCompleted() 
-			{
-		         	completed = false;
-		        }
-
-		        // Getter for isDisconnected
-		        public boolean getIsDisconnected() 
-			{
-		                return isDisconnected;
-		        }
-		}*/
-	}
-
+}
