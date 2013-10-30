@@ -13,7 +13,7 @@ public class Main {
 
 			try {
 				System.out.println("Sleeping after getData() call");
-				Thread.sleep(1000);
+				Thread.sleep(2000);
 			}
 			catch (Exception e) {}
 		}
