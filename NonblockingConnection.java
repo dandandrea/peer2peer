@@ -26,15 +26,20 @@ public class NonblockingConnection {
 		// Set hostname and port
 		this.hostname = hostname;
 		this.port = port;
-
-		// Setup the connection
-		setupConnection();
 	}
 
 	// Get data from the server
-	public String getData() throws IOException {
+	public String getData() throws IOException, InterruptedException, ExecutionException {
 		// Our receiving buffer
 		ByteBuffer receivingBuffer = ByteBuffer.allocateDirect(1024);
+
+		// If AsynchronousSocketChannel is not already instantiated or
+		// AsynchronousSocketChannel is not already open then try to
+		// establish connection (again)
+		if (asynchronousSocketChannel == null || asynchronousSocketChannel.isOpen() == false) {
+		    System.out.println("Channel not open, trying to establish connection");
+			openChannelEstablishConnection();
+		}
 
 		// Make the nonblocking read
 		// Catch and "eat" ReadPendingException since calling getData() twice
@@ -46,14 +51,15 @@ public class NonblockingConnection {
 		}
 		catch (ReadPendingException e) {}
 
-		// Throw an exception if we get disconnected
+		// Display a message if we get disconnected
 		if (handler.getIsDisconnected() == true) {
-		    System.out.println("Disconnected");
-			throw new IOException("Disconnected");
+			// Try to establish connection again
+		    System.out.println("Disconnected, trying to establish connection");
+			openChannelEstablishConnection();
 		}
 
 		// Did the read succeed?
-		if (handler.getCompleted() == true) {
+		if (handler.getIsDisconnected() == false && handler.getCompleted() == true) {
 			// data will hold the data that the handler received upon completion
 			// Copy this to _data so that we can return it
 			String _data = data;
@@ -73,27 +79,26 @@ public class NonblockingConnection {
 		}
 	}
 
-	// Setup the connection
-	private void setupConnection() throws IOException, InterruptedException, ExecutionException {
-		// Instantiate the AsynchronousSocketChannel
-		asynchronousSocketChannel = AsynchronousSocketChannel.open();
+	// Open channel and establish connection
+	// 1. Instantiate the AsynchronousSocketChannel
+	// 2. Instantiate Handler
+	// 3. Perform connect()
+	// Catch and "eat" AlreadyConnectedException since calling connect() twice
+	// will result in this exception
+	// Also catch ExecutionException which will arise if connection fails
+	private void openChannelEstablishConnection() throws IOException, InterruptedException {
+		try {
+			// Instantiate Handler
+			handler = new Handler();
 
-		// If open...
-		if (asynchronousSocketChannel.isOpen() == true) {
-			// Connect to the specified hostname and port
-			Void connect = asynchronousSocketChannel.connect(new InetSocketAddress(hostname, port)).get();
+			// Open channel
+			asynchronousSocketChannel = AsynchronousSocketChannel.open();
 
-			// If connected...
-			if (connect == null) {
-				// Instantiate the Handler
-				// This will be used for read() calls
-				handler = new Handler();
-			} else {
-				throw new IOException("Unexpected state: connect is not null");
-			}
-		} else {
-			throw new IOException("Unexpected state: Channel is not open");
+			// Connect
+			asynchronousSocketChannel.connect(new InetSocketAddress(hostname, port)).get();
 		}
+		catch (AlreadyConnectedException e) {}
+		catch (ExecutionException e) { System.out.println("Connection error, will try reconnecting on next call"); }
 	}
 
 	// Implementation of CompletionHandler for AsynchronousSocketChannel.read()
@@ -129,10 +134,6 @@ public class NonblockingConnection {
 		public void failed(Throwable exception, ByteBuffer buffer) {
 			// Set completed to false
 			completed = false;
-
-			// Display an error message and thrown an exception
-			System.out.println("***** FAIL in Handler.failed() *****");
-			throw new UnsupportedOperationException("read() failed!");
 		}  
 
 		// Getter for completed
