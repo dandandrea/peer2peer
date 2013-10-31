@@ -43,22 +43,30 @@ public class Peer2Peer {
         // Get the peer ID
         this.peerId = peerId;
 
-        // Parse Common.cfg
-        // This sets all of the various Common.cfg-related class properties
-        parseCommonConfigFile();
+		// Process configuration files
+		try {
+			// Parse Common.cfg
+        	// This sets all of the various Common.cfg-related class properties
+        	parseCommonConfigFile();
 
-        // Validate Common.cfg
-        validateCommonConfig();
+        	// Validate Common.cfg
+        	validateCommonConfig();
 
-        // Parse PeerInfo.cfg
-        parsePeerInfoFile();
+			// Parse PeerInfo.cfg
+			parsePeerInfoFile();
 
-		// Validate PeerInfo.cfg
-		validatePeerInfoFile();
+			// Validate PeerInfo.cfg
+			validatePeerInfoFile();
+		}
+		catch (Peer2PeerException e) {
+			System.out.println("Error encountered while processing configuration files: " + e.getMessage());
+			System.exit(1);
+		}
 
         // Instantiate the log FileWriter
         logFileWriter = new FileWriter("log_peer_" + peerId + ".log", true);
 
+		// Start outbound connections (stub)
 		PeerThread peerThread1002 = new PeerThread(1002);
 		peerThread1002.start();
     }
@@ -69,14 +77,14 @@ public class Peer2Peer {
         // Validate that the file exists
         File file = new File(fileName);
         if (file.exists() == false) {
-            String message = "ERROR: Cannot read from file specified in Common.cfg (" + fileName + ")";
+            String message = "Cannot read from file specified in Common.cfg (" + fileName + ")";
             message = message + " " + "Check \"FileName\" parameter";
 			throw new Peer2PeerException(message);
         }
 
         // Validate that the file is of the specified size
         if (file.length() != fileSize) {
-            String message = "ERROR: File specified in Common.cfg is not of specified size";
+            String message = "File specified in Common.cfg is not of specified size";
             message = message + " " + "Specified: " + fileSize + ", actual: " + file.length();
 			throw new Peer2PeerException(message);
         }
@@ -89,7 +97,7 @@ public class Peer2Peer {
             parser = new Parser("PeerInfo.cfg");
         }
         catch (FileNotFoundException e) {
-            throw new Peer2PeerException("ERROR: PeerInfo.cfg file does not exist");
+            throw new Peer2PeerException("PeerInfo.cfg file does not exist");
         }
 
         // Instantiate the peer info List
@@ -99,7 +107,7 @@ public class Peer2Peer {
         for (int i = 0; i < parser.getParsedList().size(); i++) {
             // Verify that there are only 4 items in each List within the parsed List
             if (parser.getParsedList().get(i).size() != 4) {
-                throw new Peer2PeerException("ERROR: Found a PeerInfo.cfg line which does not have 4 items");
+                throw new Peer2PeerException("Found a PeerInfo.cfg line which does not have 4 items");
             }
 
             // Validate that the 1st, 3rd, and 4th items are integers
@@ -136,7 +144,7 @@ public class Peer2Peer {
 
 		// Throw an exception if we didn't find the peerId
 		if (found == false) {
-			throw new Peer2PeerException("ERROR: peerId specified on command-line not found in PeerInfo.cfg");
+			throw new Peer2PeerException("peerId specified on command-line not found in PeerInfo.cfg");
 		}
     }
 
