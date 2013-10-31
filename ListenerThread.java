@@ -35,8 +35,12 @@ public class ListenerThread
 				System.out.println("Waiting for Connections!");
 				while(true)
 				{
+					System.out.println("At top of while(true) loop");
+
 					Future<AsynchronousSocketChannel> asynchronousSocketChannelFuture =
 				        asynchronousServerSocketChannel.accept();		
+
+					System.out.println("Made it here");
 
 					try (AsynchronousSocketChannel asynchronousSocketChannel = asynchronousSocketChannelFuture.get())
 					{
@@ -108,4 +112,7 @@ public class ListenerThread
 	        }
 	}		
 }
+<<<<<<< HEAD
 
+=======
+>>>>>>> 3866d21d88f34f0c8abaf92fa7438fca9d02017d

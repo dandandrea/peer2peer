@@ -1,14 +1,11 @@
-import java.io.File;
-import java.io.FileWriter;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-import java.lang.NumberFormatException;
+import java.io.*;
+import java.util.concurrent.*;
+import java.io.*;
+import java.util.*;
+import java.lang.*;
 
-public class PeerProcess {
+// The main class for the peer2peer application
+public class Peer2Peer {
     // Peer ID
     private int peerId;
 
@@ -23,20 +20,8 @@ public class PeerProcess {
     // PeerInfo List
     private List<PeerInfo> peerInfoList;
 
-    // FileWriter for log file
-    FileWriter logFileWriter;
-
-    // Run a PeerProcess
-    public static void main(String[] args) throws IOException {
-        // Get the peer ID from the command-line arguments
-        int peerId = getPeerIdFromArguments(args);
-
-        // Instantiate a PeerProcess
-        PeerProcess peerProcess = new PeerProcess(peerId);
-    }
-
-    // PeerProcess constructor
-    public PeerProcess(int peerId) throws IOException {
+    // Constructor
+    public Peer2Peer(int peerId) throws IOException, Peer2PeerException {
         // Get the peer ID
         this.peerId = peerId;
 
@@ -50,55 +35,64 @@ public class PeerProcess {
         // Parse PeerInfo.cfg
         parsePeerInfoFile();
 
+		// Validate PeerInfo.cfg
+		validatePeerInfoFile();
+
         // Instantiate the log FileWriter
         logFileWriter = new FileWriter("log_peer_" + peerId + ".log", true);
     }
 
-    // Write to log (with a timestamp)
-    private void writeToLog(String message) throws IOException {
-        // Get current date and time
-        GregorianCalendar date = new GregorianCalendar();
-        int day = date.get(Calendar.DAY_OF_MONTH);
-        int month = date.get(Calendar.MONTH);
-        int year = date.get(Calendar.YEAR);
-        int second = date.get(Calendar.SECOND);
-        int minute = date.get(Calendar.MINUTE);
-        int hour = date.get(Calendar.HOUR);
-        String timestamp = month + "/" + day + "/" + year + " " + hour + ":" + minute + ":" + second;
+	// Main entry point for running the peer2peer application
+    public static void main(String[] args) throws IOException, InterruptedException, ExecutionException, Peer2PeerException {
+		// Get the peer ID from the command-line arguments
+		int peerId = getPeerIdFromArguments(args);
 
-        // Write to the log and flush (the toilet)
-        logFileWriter.write("[" + timestamp + "]: " + message + "\n");
-        logFileWriter.flush();
-    }
+		// Instantiate a Peer2Peer object
+		Peer2Peer peer2peer = new Peer2Peer(peerId);
+
+		NonblockingConnection nonblockingConnection = new NonblockingConnection("localhost", 80);
+
+		while (true) {
+		    String data = nonblockingConnection.getData();
+			if (data != null) {
+				System.out.println("Got data:\n" + data);
+			}
+
+			try {
+				System.out.println("Sleeping after getData() call");
+				Thread.sleep(2000);
+			}
+			catch (Exception e) {}
+		}
+	}
 
     // This validates that the file specified in Common.cfg actually exists
     // and is of the specified size
-    private void validateCommonConfig() {
+    private void validateCommonConfig() throws Peer2PeerException {
         // Validate that the file exists
         File file = new File(fileName);
         if (file.exists() == false) {
-            System.out.println("ERROR: Cannot read from file specified in Common.cfg (" + fileName + ")");
-            System.out.println("Check \"FileName\" parameter");
-            System.exit(1);
+            String message = "ERROR: Cannot read from file specified in Common.cfg (" + fileName + ")";
+            message = message + " " + "Check \"FileName\" parameter";
+			throw new Peer2PeerException(message);
         }
 
         // Validate that the file is of the specified size
         if (file.length() != fileSize) {
-            System.out.println("ERROR: File specified in Common.cfg is not of specified size");
-            System.out.println("Specified: " + fileSize + ", actual: " + file.length());
-            System.exit(1);
+            String message = "ERROR: File specified in Common.cfg is not of specified size";
+            message = message + " " + "Specified: " + fileSize + ", actual: " + file.length();
+			throw new Peer2PeerException(message);
         }
     }
 
-    private void parsePeerInfoFile() {
+    private void parsePeerInfoFile() throws Peer2PeerException {
         // Instantiate a Parser
         Parser parser = null;
         try {
             parser = new Parser("PeerInfo.cfg");
         }
         catch (FileNotFoundException e) {
-            System.out.println("ERROR: PeerInfo.cfg file does not exist");
-            System.exit(1);
+            throw new Peer2PeerException("ERROR: PeerInfo.cfg file does not exist");
         }
 
         // Instantiate the peer info List
@@ -108,8 +102,7 @@ public class PeerProcess {
         for (int i = 0; i < parser.getParsedList().size(); i++) {
             // Verify that there are only 4 items in each List within the parsed List
             if (parser.getParsedList().get(i).size() != 4) {
-                System.out.println("ERROR: Found a PeerInfo.cfg line which does not have 4 items");
-                System.exit(1);
+                throw new Peer2PeerException("ERROR: Found a PeerInfo.cfg line which does not have 4 items");
             }
 
             // Validate that the 1st, 3rd, and 4th items are integers
@@ -128,27 +121,47 @@ public class PeerProcess {
         }
     }
 
+    // This validates that the peerId specified in the constructor is found
+    // in the peers specified in the PeerInfo.cfg file
+    private void validatePeerInfoFile() throws Peer2PeerException {
+		// Whether or not we found the peerId
+		boolean found = false;
+
+		// Check all items in the PeerInfo list for our peerId
+		for (int i = 0; i < peerInfoList.size(); i++) {
+			// Is this our peerId?
+			if (peerInfoList.get(i).getPeerId() == peerId) {
+				// Found it
+				found = true;
+				break;
+			}
+		}
+
+		// Throw an exception if we didn't find the peerId
+		if (found == false) {
+			throw new Peer2PeerException("ERROR: peerId specified on command-line not found in PeerInfo.cfg");
+		}
+    }
+
     // Helper method for dealing with determining if a String can be cast to an int
-    private void mustBeInteger(String candidateString, int itemNumber) {
+    private void mustBeInteger(String candidateString, int itemNumber) throws Peer2PeerException {
         try {
             Integer.parseInt(candidateString);
         }
         catch (NumberFormatException e) {
-            System.out.println("ERROR: Item number " + itemNumber + " must be an integer value");
-            System.exit(1);
+            throw new Peer2PeerException("ERROR: Item number " + itemNumber + " must be an integer value");
         }
     }
 
     // Parse Common.cfg
-    private void parseCommonConfigFile() {
+    private void parseCommonConfigFile() throws Peer2PeerException {
         // Instantiate a Parser
         Parser parser = null;
         try {
             parser = new Parser("Common.cfg");
         }
         catch (FileNotFoundException e) {
-            System.out.println("ERROR: Common.cfg file does not exist");
-            System.exit(1);
+            throw new Peer2PeerException("ERROR: Common.cfg file does not exist");
         }
 
         // Now we have a parsedList and we can get the configuration properties from it
@@ -160,20 +173,18 @@ public class PeerProcess {
         pieceSize = Integer.parseInt(getCommonConfigItem("PieceSize", true, parser));
     }
 
-    private String getCommonConfigItem(String key, boolean isInteger, Parser parser) {
+    private String getCommonConfigItem(String key, boolean isInteger, Parser parser) throws Peer2PeerException {
         // Try to get the item from the parser by its key
         List<String> tokenList = parser.getListByKey(key);
 
         // Was the key not found?
         if (tokenList == null) {
-            System.out.println("ERROR: Could not get " + key + " from Common.cfg");
-            System.exit(1);
+            throw new Peer2PeerException("ERROR: Could not get " + key + " from Common.cfg");
         }
 
         // Is the item returned by the key a list with 2 values?
         if (tokenList.size() != 2) {
-            System.out.println("ERROR: Encountered invalid format when looking up " + key);
-            System.exit(1);
+            throw new Peer2PeerException("ERROR: Encountered invalid format when looking up " + key);
         }
 
         // Do we need to check that the value is a valid integer?
@@ -182,8 +193,7 @@ public class PeerProcess {
                 Integer.parseInt(tokenList.get(1));
             }
             catch (NumberFormatException e) {
-                System.out.println("ERROR: " + key + " is not in a valid integer format");
-                System.exit(1);
+                throw new Peer2PeerException("ERROR: " + key + " is not in a valid integer format");
             }
         }
 
@@ -194,11 +204,10 @@ public class PeerProcess {
 
     // Validate command-line arguments
     // Return peer ID if valid
-    static private int getPeerIdFromArguments(String[] args) {
+    static private int getPeerIdFromArguments(String[] args) throws Peer2PeerException {
         // Must have one command-line argument
         if (args.length != 1) {
-            System.out.println("Usage: java PeerProcess <Peer ID>");
-            System.exit(1);
+            throw new Peer2PeerException("Usage: java PeerProcess <Peer ID>");
         }
 
         // Validate that command-line argument is an integer
@@ -208,71 +217,27 @@ public class PeerProcess {
             peerId= Integer.parseInt(args[0]);
         }
         catch (NumberFormatException e) {
-            System.out.println("ERROR: Peer ID must be an integer");
-            System.exit(1);
+            throw new Peer2PeerException("ERROR: Peer ID must be an integer");
         }
 
         // Return the peer ID
         return peerId;
     }
 
-    // Private inner-class for PeerInfo
-    private class PeerInfo {
-        // The peer info properties
-        private int peerId;
-        private String hostname;
-        private int port;
-        private int hasFile;
+    // Write to log (with a timestamp)
+    private void writeToLog(String message) throws IOException {
+        // Get current date and time
+        GregorianCalendar date = new GregorianCalendar();
+        int day = date.get(Calendar.DAY_OF_MONTH);
+        int month = date.get(Calendar.MONTH);
+        int year = date.get(Calendar.YEAR);
+        int second = date.get(Calendar.SECOND);
+        int minute = date.get(Calendar.MINUTE);
+        int hour = date.get(Calendar.HOUR);
+        String timestamp = month + "/" + day + "/" + year + " " + hour + ":" + minute + ":" + second;
 
-        // Constructor
-        public PeerInfo(int peerId, String hostname, int port, int hasFile) {
-            this.peerId = peerId;
-            this.hostname = hostname;
-            this.port = port;
-            this.hasFile = hasFile;
-        }
-
-        // Default constructor
-        public PeerInfo() {}
-
-        // Getter for peer ID
-        public int getPeerId() {
-            return peerId;
-        }
-
-        // Getter for hostname
-        public String getHostname() {
-            return hostname;
-        }
-
-        // Getter for port
-        public int getPort() {
-            return port;
-        }
-
-        // Getter for hasFile
-        public int getHasFile() {
-            return hasFile;
-        }
-
-        // Setter for peer ID
-        public void setPeerId(int peerId) {
-            this.peerId = peerId;
-        }
-
-        // Setter for hostname
-        public void setHostname(String hostname) {
-            this.hostname = hostname;
-        }
-
-        // Setter for port
-        public void setPort(int port) {
-            this.port = port;
-        }
-
-        // Setter for hasFile
-        public void setHasFile(int hasFile) {
-            this.hasFile = hasFile;
-        }
+        // Write to the log and flush (the toilet)
+        logFileWriter.write("[" + timestamp + "]: " + message + "\n");
+        logFileWriter.flush();
     }
 }
