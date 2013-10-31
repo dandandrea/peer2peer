@@ -20,8 +20,26 @@ public class Peer2Peer {
     // PeerInfo List
     private List<PeerInfo> peerInfoList;
 
+	// Our LogFileWriter
+	FileWriter logFileWriter;
+
+	// Main entry point for running the peer2peer application
+    public static void main(String[] args) throws IOException, InterruptedException, ExecutionException, Peer2PeerException {
+		// Get the peer ID from the command-line arguments
+		int peerId = getPeerIdFromArguments(args);
+
+		// Did we get a valid peer ID?
+		if (peerId == -1) {
+			System.out.println("Usage: java Peer2Peer <peer ID>");
+			System.exit(1);
+		}
+
+		// Instantiate a Peer2Peer object
+		Peer2Peer peer2peer = new Peer2Peer(peerId);
+	}
+
     // Constructor
-    public Peer2Peer(int peerId) throws IOException, Peer2PeerException {
+    public Peer2Peer(int peerId) throws IOException, InterruptedException, ExecutionException, Peer2PeerException {
         // Get the peer ID
         this.peerId = peerId;
 
@@ -40,31 +58,10 @@ public class Peer2Peer {
 
         // Instantiate the log FileWriter
         logFileWriter = new FileWriter("log_peer_" + peerId + ".log", true);
+
+		PeerThread peerThread1002 = new PeerThread(1002);
+		peerThread1002.start();
     }
-
-	// Main entry point for running the peer2peer application
-    public static void main(String[] args) throws IOException, InterruptedException, ExecutionException, Peer2PeerException {
-		// Get the peer ID from the command-line arguments
-		int peerId = getPeerIdFromArguments(args);
-
-		// Instantiate a Peer2Peer object
-		Peer2Peer peer2peer = new Peer2Peer(peerId);
-
-		NonblockingConnection nonblockingConnection = new NonblockingConnection("localhost", 80);
-
-		while (true) {
-		    String data = nonblockingConnection.getData();
-			if (data != null) {
-				System.out.println("Got data:\n" + data);
-			}
-
-			try {
-				System.out.println("Sleeping after getData() call");
-				Thread.sleep(2000);
-			}
-			catch (Exception e) {}
-		}
-	}
 
     // This validates that the file specified in Common.cfg actually exists
     // and is of the specified size
@@ -207,17 +204,17 @@ public class Peer2Peer {
     static private int getPeerIdFromArguments(String[] args) throws Peer2PeerException {
         // Must have one command-line argument
         if (args.length != 1) {
-            throw new Peer2PeerException("Usage: java PeerProcess <Peer ID>");
+            return -1;
         }
 
         // Validate that command-line argument is an integer
         // Also return the peer ID here if the argument is valid
-        int peerId = 0;
+        int peerId = -1;
         try {
-            peerId= Integer.parseInt(args[0]);
+            peerId = Integer.parseInt(args[0]);
         }
         catch (NumberFormatException e) {
-            throw new Peer2PeerException("ERROR: Peer ID must be an integer");
+            return -1;
         }
 
         // Return the peer ID

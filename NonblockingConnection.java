@@ -37,7 +37,7 @@ public class NonblockingConnection {
 		// AsynchronousSocketChannel is not already open then try to
 		// establish connection (again)
 		if (asynchronousSocketChannel == null || asynchronousSocketChannel.isOpen() == false) {
-		    System.out.println("Channel not open, trying to establish connection");
+		    // System.out.println("Channel not open, trying to establish connection");
 			openChannelEstablishConnection();
 		}
 
@@ -54,7 +54,7 @@ public class NonblockingConnection {
 		// Display a message if we get disconnected
 		if (handler.getIsDisconnected() == true) {
 			// Try to establish connection again
-		    System.out.println("Disconnected, trying to establish connection");
+		    // System.out.println("Disconnected, trying to establish connection");
 			openChannelEstablishConnection();
 		}
 
@@ -98,7 +98,9 @@ public class NonblockingConnection {
 			asynchronousSocketChannel.connect(new InetSocketAddress(hostname, port)).get();
 		}
 		catch (AlreadyConnectedException e) {}
-		catch (ExecutionException e) { System.out.println("Connection error, will try reconnecting on next call"); }
+		catch (ExecutionException e) {
+			// System.out.println("Connection error, will try reconnecting on next call");
+		}
 	}
 
 	// Implementation of CompletionHandler for AsynchronousSocketChannel.read()

@@ -112,7 +112,3 @@ public class ListenerThread
 	        }
 	}		
 }
-<<<<<<< HEAD
-
-=======
->>>>>>> 3866d21d88f34f0c8abaf92fa7438fca9d02017d
