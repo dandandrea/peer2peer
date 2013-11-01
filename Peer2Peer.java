@@ -20,23 +20,13 @@ public class Peer2Peer {
     // PeerInfo List
     private List<PeerInfo> peerInfoList;
 
-	// Our LogFileWriter
-	FileWriter logFileWriter;
+	// FileWriter for logging
+	private FileWriter logFileWriter;
 
-	// Main entry point for running the peer2peer application
-    public static void main(String[] args) throws IOException, InterruptedException, ExecutionException, Peer2PeerException {
-		// Get the peer ID from the command-line arguments
-		int peerId = getPeerIdFromArguments(args);
-
-		// Did we get a valid peer ID?
-		if (peerId == -1) {
-			System.out.println("Usage: java Peer2Peer <peer ID>");
-			System.exit(1);
-		}
-
-		// Instantiate a Peer2Peer object
-		Peer2Peer peer2peer = new Peer2Peer(peerId);
-	}
+	// Holds an instance of the Peer2Peer class so that threads can access it
+	// This gives threads access to Peer2Peer's logging service, the PeerInfo List, etc
+	// This gets set in the main() method
+	protected static Peer2Peer peer2Peer;
 
     // Constructor
     public Peer2Peer(int peerId) throws IOException, InterruptedException, ExecutionException, Peer2PeerException {
@@ -230,7 +220,7 @@ public class Peer2Peer {
     }
 
     // Write to log (with a timestamp)
-    private void writeToLog(String message) throws IOException {
+    protected void writeToLog(String message) {
         // Get current date and time
         GregorianCalendar date = new GregorianCalendar();
         int day = date.get(Calendar.DAY_OF_MONTH);
@@ -242,7 +232,27 @@ public class Peer2Peer {
         String timestamp = month + "/" + day + "/" + year + " " + hour + ":" + minute + ":" + second;
 
         // Write to the log and flush (the toilet)
-        logFileWriter.write("[" + timestamp + "]: " + message + "\n");
-        logFileWriter.flush();
+		try {
+        	logFileWriter.write("[" + timestamp + "]: " + message + "\n");
+        	logFileWriter.flush();
+		}
+		catch (IOException e) {
+			System.out.println("ERROR: Caught IOException in writeToLog(): " + e.getMessage());
+		}
     }
+
+	// Main entry point for running the peer2peer application from the command-line
+    public static void main(String[] args) throws IOException, InterruptedException, ExecutionException, Peer2PeerException {
+		// Get the peer ID from the command-line arguments
+		int peerId = getPeerIdFromArguments(args);
+
+		// Did we get a valid peer ID?
+		if (peerId == -1) {
+			System.out.println("Usage: java Peer2Peer <peer ID>");
+			System.exit(1);
+		}
+
+		// Instantiate a Peer2Peer object
+		peer2Peer = new Peer2Peer(peerId);
+	}
 }

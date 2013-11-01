@@ -7,3 +7,6 @@
 
 # Backup files
 *.*~
+
+# Log files
+*.log

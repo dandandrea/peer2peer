@@ -18,36 +18,38 @@ public class PeerThread extends Thread {
 	// Thread.run()
 	public void run() {
 		// Instantiate NonblockingConnection
-		NonblockingConnection nonblockingConnection = null;
-		try {
-			nonblockingConnection = new NonblockingConnection("localhost", 80);
-		}
-		catch (Exception e) {
-			System.out.println("Caught exception during instantiation of NonBlockingConnection: " + e.getMessage());
-		}
+		NonblockingConnection nonblockingConnection = new NonblockingConnection("localhost", 80);
+
+		// We'll use this for now to track the order in which transmissions arrive
+		int transmissionNumber = 0;
 
 		// This is the main loop of the thread
 		while (true) {
 			// Get data from remote peer
-			String data = null;
-			try {
-				data = nonblockingConnection.getData();
-			}
-			catch (Exception e) {
-				System.out.println("Caught exception during nonblockingConnection.getData(): " + e.getMessage());
-			}
+			String data = nonblockingConnection.getData();
 
 			// Display data, if any
 			if (data != null) {
 				System.out.println("Got data:\n" + data);
 			}
 
+			// Increment the transmission number
+			transmissionNumber++;
+
+			// Send data to the remote peer
+			nonblockingConnection.sendData("Hello #" + transmissionNumber + "\n");
+
 			// Sleep
-			try {
-				System.out.println("Thread for remote peer ID " + remotePeerId + " sleeping after getData() call");
-				Thread.sleep(SLEEP_MILLISECONDS);
-			}
-			catch (InterruptedException e) {}
+			System.out.println("Thread for remote peer ID " + remotePeerId + " sleeping");
+			sleep(SLEEP_MILLISECONDS);
 		}
+	}
+
+	// Method to clean-up sleeps (don't have to ugly our code with the try/catch)
+	private void sleep(int duration) {
+		try {
+			Thread.sleep(SLEEP_MILLISECONDS);
+		}
+		catch (InterruptedException e) {}
 	}
 }

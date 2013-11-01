@@ -13,23 +13,31 @@ public class NonblockingConnection {
 	private int port;
 
 	// The connection's AsynchronousSocketChannel
-	AsynchronousSocketChannel asynchronousSocketChannel;
+	private AsynchronousSocketChannel asynchronousSocketChannel;
 
 	// The handler used by AsynchronousSocketChannel.read()
-	Handler handler;
+	private Handler handler;
 
 	// The data received by read()
-	String data;
+	private String data;
+
+	// Send queue
+	// This is used to queue sends when they fail
+	// so that we can retry them later
+	private Deque<String> sendQueue;
 
 	// Constructor
-	public NonblockingConnection(String hostname, int port) throws IOException, InterruptedException, ExecutionException {
+	public NonblockingConnection(String hostname, int port) {
 		// Set hostname and port
 		this.hostname = hostname;
 		this.port = port;
+
+		// Instantiate the send queue
+		sendQueue = new ArrayDeque<String>();
 	}
 
 	// Get data from the server
-	public String getData() throws IOException, InterruptedException, ExecutionException {
+	public String getData() {
 		// Our receiving buffer
 		ByteBuffer receivingBuffer = ByteBuffer.allocateDirect(1024);
 
@@ -37,7 +45,7 @@ public class NonblockingConnection {
 		// AsynchronousSocketChannel is not already open then try to
 		// establish connection (again)
 		if (asynchronousSocketChannel == null || asynchronousSocketChannel.isOpen() == false) {
-		    // System.out.println("Channel not open, trying to establish connection");
+		    // Channel not open, trying to establish connection
 			openChannelEstablishConnection();
 		}
 
@@ -54,7 +62,7 @@ public class NonblockingConnection {
 		// Display a message if we get disconnected
 		if (handler.getIsDisconnected() == true) {
 			// Try to establish connection again
-		    // System.out.println("Disconnected, trying to establish connection");
+		    // Disconnected, trying to establish connection
 			openChannelEstablishConnection();
 		}
 
@@ -79,6 +87,74 @@ public class NonblockingConnection {
 		}
 	}
 
+	// Send data to the server
+	public void sendData(String data) {
+		// If AsynchronousSocketChannel is not already instantiated or
+		// AsynchronousSocketChannel is not already open then try to
+		// establish connection (again)
+		if (asynchronousSocketChannel == null || asynchronousSocketChannel.isOpen() == false) {
+		    // Channel not open, trying to establish connection
+			openChannelEstablishConnection();
+		}
+
+		// Place the data to be sent in the send queue
+		sendQueue.add(data);
+
+		// Now try to send the contents of the send queue
+		// Stop sending on first failure
+		while (sendQueue.peek() != null) {
+			// Whether or not there was an error sending
+			boolean sendError = false;
+
+			// Get the data at the head of the queue
+			String nextData = sendQueue.remove();
+
+			// Convert the String to a ByteBuffer
+			ByteBuffer sendingBuffer = ByteBuffer.wrap(nextData.getBytes());
+
+			// Try to send
+			try {
+				// Send
+				asynchronousSocketChannel.write(sendingBuffer).get();
+			}
+			catch (InterruptedException e) {
+				sendError = true;
+			}
+			catch (ExecutionException e) {
+				sendError = true;
+			}
+
+			// If there was a send error then place the item which we failed to send
+			// back at the head of the queue and stop trying to send for now
+			if (sendError == true) {
+				// Place this item back at the head of the queue
+				sendQueue.addFirst(nextData);
+
+				// Stop trying to send
+				break;
+			}
+		}
+	}
+
+	// Put an item at the head of the send queue
+	private void putAtHeadOfSendQueue(String data) {
+		// Instantiate a new send queue
+		Deque<String> newSendQueue = new ArrayDeque<String>();
+
+		// Place the data to be at the head of the new send queue
+		// in the new send queue
+		newSendQueue.add(data);
+
+		// Now add the contents of the existing send queue to the
+		// new send queue
+		while (sendQueue.peek() != null) {
+			newSendQueue.add(sendQueue.remove());
+		}
+
+		// Replace the existing send queue with the new send queue
+		sendQueue = newSendQueue;
+	}
+
 	// Open channel and establish connection
 	// 1. Instantiate the AsynchronousSocketChannel
 	// 2. Instantiate Handler
@@ -86,7 +162,7 @@ public class NonblockingConnection {
 	// Catch and "eat" AlreadyConnectedException since calling connect() twice
 	// will result in this exception
 	// Also catch ExecutionException which will arise if connection fails
-	private void openChannelEstablishConnection() throws IOException, InterruptedException {
+	private void openChannelEstablishConnection() {
 		try {
 			// Instantiate Handler
 			handler = new Handler();
@@ -97,9 +173,17 @@ public class NonblockingConnection {
 			// Connect
 			asynchronousSocketChannel.connect(new InetSocketAddress(hostname, port)).get();
 		}
-		catch (AlreadyConnectedException e) {}
+		catch (AlreadyConnectedException e) {
+			// This is an okay condition
+		}
 		catch (ExecutionException e) {
-			// System.out.println("Connection error, will try reconnecting on next call");
+			// Connection error, will try reconnecting on next call
+		}
+		catch (IOException e) {
+			System.out.println("Caught IOException in openChannelEstablishConnection(): " + e.getMessage());
+		}
+		catch (InterruptedException e) {
+			System.out.println("Caught InterruptedException in openChannelEstablishConnection(): " + e.getMessage());
 		}
 	}
 
