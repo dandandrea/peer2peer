@@ -17,8 +17,8 @@ public class Peer2Peer {
     private int fileSize;
     private int pieceSize;
 
-    // PeerInfo List
-    private List<PeerInfo> peerInfoList;
+    // PeerInfoList
+    private PeerInfoList peerInfoList;
 
 	// FileWriter for logging
 	private FileWriter logFileWriter;
@@ -56,10 +56,26 @@ public class Peer2Peer {
         // Instantiate the log FileWriter
         logFileWriter = new FileWriter("log_peer_" + peerId + ".log", true);
 
-		// Start outbound connections (stub)
-		PeerThread peerThread1002 = new PeerThread(1002);
-		peerThread1002.start();
+		// Instantiate the PeerThread List
+		peerThreadList = new ArrayList<PeerThread>();
     }
+
+	// Start PeerThreads
+	// Need to put this in a separate method because having this in the constructor
+	// results in an ugly race condition
+	public void startPeerThreads() throws IOException {
+		// Start outbound connections
+		// Start a thread for each peer that comes before our peer ID in the PeerInfo list
+		for (int i = 0; i < peerInfoList.getSize(); i++) {
+		    if (peerInfoList.getPeerInfoByIndex(i).getPeerId() < peerId) {
+                System.out.println("Connecting to peer ID " + peerInfoList.getPeerInfoByIndex(i).getPeerId());
+
+				// Start thread for this peer
+		        PeerThread peerThread = new PeerThread(peerInfoList.getPeerInfoByIndex(i).getPeerId());
+		        peerThread.start();
+			}
+		}
+	}
 
     // This validates that the file specified in Common.cfg actually exists
     // and is of the specified size
@@ -90,8 +106,8 @@ public class Peer2Peer {
             throw new Peer2PeerException("PeerInfo.cfg file does not exist");
         }
 
-        // Instantiate the peer info List
-        peerInfoList = new ArrayList<PeerInfo>();
+        // Instantiate the PeerInfoList
+        peerInfoList = new PeerInfoList();
 
         // Process the parsed List
         for (int i = 0; i < parser.getParsedList().size(); i++) {
@@ -123,9 +139,9 @@ public class Peer2Peer {
 		boolean found = false;
 
 		// Check all items in the PeerInfo list for our peerId
-		for (int i = 0; i < peerInfoList.size(); i++) {
+		for (int i = 0; i < peerInfoList.getSize(); i++) {
 			// Is this our peerId?
-			if (peerInfoList.get(i).getPeerId() == peerId) {
+			if (peerInfoList.getPeerInfoByIndex(i).getPeerId() == peerId) {
 				// Found it
 				found = true;
 				break;
@@ -241,6 +257,16 @@ public class Peer2Peer {
 		}
     }
 
+	// Protected peerInfoList getter for use by PeerThreads
+	protected PeerInfoList getPeerInfoList() {
+	    return peerInfoList;
+	}
+
+	// Protected peerId getter for use by PeerThreads
+	protected int getPeerId() {
+	    return peerId;
+	}
+
 	// Main entry point for running the peer2peer application from the command-line
     public static void main(String[] args) throws IOException, InterruptedException, ExecutionException, Peer2PeerException {
 		// Get the peer ID from the command-line arguments
@@ -254,5 +280,8 @@ public class Peer2Peer {
 
 		// Instantiate a Peer2Peer object
 		peer2Peer = new Peer2Peer(peerId);
+
+		// Start PeerThreads
+		peer2Peer.startPeerThreads();
 	}
 }

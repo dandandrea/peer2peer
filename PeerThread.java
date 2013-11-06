@@ -7,7 +7,7 @@ public class PeerThread extends Thread {
     private int remotePeerId;
 
 	// Number of milliseconds to sleep between main thread loop iterations
-	private static final int SLEEP_MILLISECONDS = 1000;
+	private static final int SLEEP_MILLISECONDS = 3000;
 
     // PeerThread constructor
     public PeerThread(int remotePeerId) throws IOException {
@@ -17,8 +17,12 @@ public class PeerThread extends Thread {
 
 	// Thread.run()
 	public void run() {
+	    // Determine hostname and port to connect to
+		String hostname = Peer2Peer.peer2Peer.getPeerInfoList().getPeerInfo(remotePeerId).getHostname();
+		int port = Peer2Peer.peer2Peer.getPeerInfoList().getPeerInfo(remotePeerId).getPort();
+
 		// Instantiate NonblockingConnection
-		NonblockingConnection nonblockingConnection = new NonblockingConnection("localhost", 80);
+		NonblockingConnection nonblockingConnection = new NonblockingConnection(hostname, port);
 
 		// We'll use this for now to track the order in which transmissions arrive
 		int transmissionNumber = 0;
@@ -30,14 +34,14 @@ public class PeerThread extends Thread {
 
 			// Display data, if any
 			if (data != null) {
-				System.out.println("Got data:\n" + data);
+				System.out.println("Peer ID " + Peer2Peer.peer2Peer.getPeerId() + " got data from peer ID " + remotePeerId + ":\n" + data);
 			}
 
 			// Increment the transmission number
 			transmissionNumber++;
 
 			// Send data to the remote peer
-			nonblockingConnection.sendData("Hello #" + transmissionNumber + "\n");
+			nonblockingConnection.sendData("Hello from peer ID " + Peer2Peer.peer2Peer.getPeerId() + " (#" + transmissionNumber + ")\n");
 
 			// Sleep
 			System.out.println("Thread for remote peer ID " + remotePeerId + " sleeping");
