@@ -28,6 +28,9 @@ public class Peer2Peer {
 	// This gets set in the main() method
 	protected static Peer2Peer peer2Peer;
 
+	// Number of milliseconds to sleep (used throughout the application)
+	private static final int SLEEP_MILLISECONDS = 3000;
+
     // Constructor
     public Peer2Peer(int peerId) throws IOException, InterruptedException, ExecutionException, Peer2PeerException {
         // Get the peer ID
@@ -56,8 +59,13 @@ public class Peer2Peer {
         // Instantiate the log FileWriter
         logFileWriter = new FileWriter("log_peer_" + peerId + ".log", true);
 
-		// Instantiate the PeerThread List
-		peerThreadList = new ArrayList<PeerThread>();
+		// Get the hostname and port to listen on
+		String listenHostname = peerInfoList.getPeerInfo(peerId).getHostname();
+		int listenPort = peerInfoList.getPeerInfo(peerId).getPort();
+
+		// Start the ListenerThread
+		ListenerThread listenerThread = new ListenerThread(listenHostname, listenPort, SLEEP_MILLISECONDS);
+		listenerThread.start();
     }
 
 	// Start PeerThreads
@@ -71,7 +79,7 @@ public class Peer2Peer {
                 System.out.println("Connecting to peer ID " + peerInfoList.getPeerInfoByIndex(i).getPeerId());
 
 				// Start thread for this peer
-		        PeerThread peerThread = new PeerThread(peerInfoList.getPeerInfoByIndex(i).getPeerId());
+		        PeerThread peerThread = new PeerThread(peerInfoList.getPeerInfoByIndex(i).getPeerId(), SLEEP_MILLISECONDS);
 		        peerThread.start();
 			}
 		}

@@ -1,114 +1,76 @@
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.net.StandardSocketOptions;
-import java.nio.ByteBuffer;
-import java.nio.channels.*;
-import java.nio.charset.Charset;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
 import java.io.*;
+import java.lang.*;
+import java.net.*;
+import java.nio.*;
+import java.nio.channels.*;
 import java.util.*;
+import java.util.concurrent.*;
 
+public class ListenerThread extends Thread {
+    // Hostname and port to listen on
+	private String hostname;
+	private int port;
 
-public class ListenerThread 
-{
-	final static String Server_IP = "127.0.0.1";
-	final static int Server_Port = 8000;
+	// Number of milliseconds to sleep between loop iterations
+	private int sleepMilliseconds;
 
-	public static void main(String[] args)
-	{
-
-		// The handler used by AsynchronousSocketChannel.read()
-		Handler handler = new Handler();		
-
-		try(AsynchronousServerSocketChannel asynchronousServerSocketChannel = AsynchronousServerSocketChannel.open())
-		{
-		
-			if (asynchronousServerSocketChannel.isOpen())
-			{
-				//set options
-				//asynchronousServerSocketChannel.setOption(StandardSocketOptions.SO_KEEPALIVE, true);
-
-				//bind to local address
-		       		asynchronousServerSocketChannel.bind(new InetSocketAddress(Server_IP, Server_Port));
-				
-				System.out.println("Waiting for Connections!");
-				while(true)
-				{
-					System.out.println("At top of while(true) loop");
-
-					Future<AsynchronousSocketChannel> asynchronousSocketChannelFuture =
-				        asynchronousServerSocketChannel.accept();		
-
-					System.out.println("Made it here");
-
-					try (AsynchronousSocketChannel asynchronousSocketChannel = asynchronousSocketChannelFuture.get())
-					{
-						//set options
-						asynchronousSocketChannel.setOption(StandardSocketOptions.SO_KEEPALIVE, true);
-
-						//Incoming message
-						ByteBuffer incomingBuffer = ByteBuffer.allocateDirect(1024);
-						asynchronousSocketChannel.read(incomingBuffer, incomingBuffer, handler);
-						
-						System.out.println(" Established Conection with " + asynchronousSocketChannel.getRemoteAddress());
-						
-						try
-						{	
-							while(true)
-							{
-								System.out.println(" The connection is sleeping ");
-								// Spawned Thread
-								Thread.sleep(5000);
-								// replying message to connected client
-								ByteBuffer outgoing_Reply = ByteBuffer.wrap("Hello Sir \n".getBytes());
-								asynchronousSocketChannel.write(outgoing_Reply).get();
-							}
-						}
-						catch( Exception e )
-						{ }
-
-						/*// replying message to connected client
-						ByteBuffer outgoing_Reply = ByteBuffer.wrap("Hello Sir \n".getBytes());
-						asynchronousSocketChannel.write(outgoing_Reply).get();*/
-					
-					}
-					catch (ReadPendingException e) {}
-
-					/*// Throw an exception if we get disconnected
-					if (handler.getIsDisconnected() == true) 
-					{
-					 System.out.println("Disconnected");
-						throw new IOException("Disconnected");
-				 	}*/
-				}
-			}
-		} 
-		catch (IOException | InterruptedException | ExecutionException error)
-		{
-			System.err.println(error);
-		}
+	// Constructor
+	public ListenerThread(String hostname, int port, int sleepMilliseconds) {
+	    this.hostname = hostname;
+		this.port = port;
+		this.sleepMilliseconds = sleepMilliseconds;
 	}
 
-	private static class Handler implements CompletionHandler<Integer, ByteBuffer>
-	{
-		public void completed(Integer result, ByteBuffer buffer)
-		{	
-			if (buffer != null)
-			{
-				buffer.flip();
-				String message = Charset.defaultCharset().decode(buffer).toString();
-				buffer.clear();
-				// Message received from client
-				System.out.println(" Message received from client " + message);
+	// Thread.run()
+	public void run() {
+	    while (true) {
+			try{
+				// Open an asynchronous server socket channel
+				AsynchronousServerSocketChannel asynchronousServerSocketChannel = AsynchronousServerSocketChannel.open();
+
+				// Wait until open
+				if (asynchronousServerSocketChannel.isOpen() == true) {
+					// Bind to the hostname and port (start listening)
+					asynchronousServerSocketChannel.bind(new InetSocketAddress(hostname, port));
+
+					// Accept connections
+					Future<AsynchronousSocketChannel> asynchronousSocketChannelFuture = asynchronousServerSocketChannel.accept();
+
+					// Get the inbound connection
+					System.out.println("About to block");
+					AsynchronousSocketChannel asynchronousSocketChannel = asynchronousSocketChannelFuture.get();
+					System.out.println("Unblocked");
+
+					// TODO: Do handshake
+					System.out.println("TODO: Handshake");
+
+					// TODO: Hand off asynchronous socket channel to PeerThread
+					System.out.println("TODO: Hand off async socket channel to PeerThread");
+
+				    // Close the channel
+				    asynchronousServerSocketChannel.close();
+				}
 			}
+			catch (IOException e) {
+				System.out.println("Caught IOException in ListenerThread.run(): " + e.getMessage());
+			}
+			catch (InterruptedException e) {
+				System.out.println("Caught InterruptedException in ListenerThread.run(): " + e.getMessage());
+			}
+			catch (ExecutionException e) {
+				System.out.println("Caught ExecutionException in ListenerThread.run(): " + e.getMessage());
+			}
+
+			// Sleep before looping again
+			sleep(sleepMilliseconds);
 		}
-		
-		public void failed(Throwable exception, ByteBuffer buffer) 
-		{
-	                // Display an error message and thrown an exception
-	                System.out.println("***** FAIL in Handler.failed() *****");
-	                throw new UnsupportedOperationException("read failed!");
-	        }
-	}		
+	}	 
+
+	// Method to clean-up sleeps (don't have to ugly our code with the try/catch)
+	private void sleep(int duration) {
+		try {
+			Thread.sleep(duration);
+		}
+		catch (InterruptedException e) {}
+	}
 }

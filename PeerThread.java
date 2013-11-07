@@ -7,12 +7,15 @@ public class PeerThread extends Thread {
     private int remotePeerId;
 
 	// Number of milliseconds to sleep between main thread loop iterations
-	private static final int SLEEP_MILLISECONDS = 3000;
+	private int sleepMilliseconds;
 
     // PeerThread constructor
-    public PeerThread(int remotePeerId) throws IOException {
+    public PeerThread(int remotePeerId, int sleepMilliseconds) throws IOException {
         // Set the remote peer ID
         this.remotePeerId = remotePeerId;
+
+		// Set the sleep milliseconds
+		this.sleepMilliseconds = sleepMilliseconds;
     }
 
 	// Thread.run()
@@ -45,14 +48,14 @@ public class PeerThread extends Thread {
 
 			// Sleep
 			System.out.println("Thread for remote peer ID " + remotePeerId + " sleeping");
-			sleep(SLEEP_MILLISECONDS);
+			sleep(sleepMilliseconds);
 		}
 	}
 
 	// Method to clean-up sleeps (don't have to ugly our code with the try/catch)
 	private void sleep(int duration) {
 		try {
-			Thread.sleep(SLEEP_MILLISECONDS);
+			Thread.sleep(sleepMilliseconds);
 		}
 		catch (InterruptedException e) {}
 	}
