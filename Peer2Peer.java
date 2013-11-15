@@ -85,6 +85,44 @@ public class Peer2Peer {
 		}
 	}
 
+	// TODO: Remove this loop
+	// This loop only exists as a proof-of-concept to show that the connections are working
+	public void startListenLoop() {
+		while (true) {
+		    System.out.println("Looking for incoming data");
+
+            // Check each connected peer for new data
+			for (int i = 0; i < peerInfoList.getSize(); i++) {
+				// Skip this peer (don't read from ourselves, duh!)
+				if (peerInfoList.getPeerInfoByIndex(i).getPeerId() == peerId) {
+				    // Don't read from myself (duh!)
+				    continue;
+			    }
+
+				// Skip this peer if it doesn't have a connection
+				if (peerInfoList.getPeerInfoByIndex(i).getConnection() == null) {
+				    // No connection
+				    continue;
+				}
+
+				// See if this connection has sent any data
+				String data = peerInfoList.getPeerInfoByIndex(i).getConnection().getData();
+
+				// Keep getting data until there isn't any more to get
+				while (data != null && data.trim().equals("") == false) {
+					// Display the data
+					System.out.println("Data from peer ID " + peerInfoList.getPeerInfoByIndex(i).getPeerId() + ": " + data);
+
+					// Try to get more data
+					data = peerInfoList.getPeerInfoByIndex(i).getConnection().getData();
+				}
+			}
+
+            // Sleep before trying to read again
+		    sleep(SLEEP_MILLISECONDS);
+        }
+	}
+
     // This validates that the file specified in Common.cfg actually exists
     // and is of the specified size
     private void validateCommonConfig() throws Peer2PeerException {
@@ -291,5 +329,17 @@ public class Peer2Peer {
 
 		// Start PeerThreads
 		peer2Peer.startPeerThreads();
+
+		// TODO: Remove this loop
+		// This loop only exists as a proof-of-concept to show that the connections are working
+		peer2Peer.startListenLoop();
 	}
+
+    // Method to clean-up sleeps (don't have to ugly our code with the try/catch)
+    private void sleep(int duration) {
+        try {
+            Thread.sleep(duration);
+        }
+        catch (InterruptedException e) {}
+    }
 }

@@ -47,7 +47,6 @@ public class PeerThread extends Thread {
 			nonblockingConnection.sendData("Hello from peer ID " + Peer2Peer.peer2Peer.getPeerId() + " (#" + transmissionNumber + ")\n");
 
 			// Sleep
-			System.out.println("Thread for remote peer ID " + remotePeerId + " sleeping");
 			sleep(sleepMilliseconds);
 		}
 	}
