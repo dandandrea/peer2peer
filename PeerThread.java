@@ -27,6 +27,14 @@ public class PeerThread extends Thread {
 		// Instantiate NonblockingConnection
 		NonblockingConnection nonblockingConnection = new NonblockingConnection(hostname, port);
 
+		// Send handshake
+		// Stub for now
+		System.out.println("TODO: Implement real handshake send");
+		nonblockingConnection.sendData(new Integer(Peer2Peer.peer2Peer.getPeerId()).toString() + "\n");
+
+		// Need to sleep so that this is the only contents in the receive buffer of the other side
+		sleep(sleepMilliseconds * 2);
+
 		// We'll use this for now to track the order in which transmissions arrive
 		int transmissionNumber = 0;
 

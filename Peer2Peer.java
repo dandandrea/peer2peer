@@ -106,7 +106,14 @@ public class Peer2Peer {
 				}
 
 				// See if this connection has sent any data
-				String data = peerInfoList.getPeerInfoByIndex(i).getConnection().getData();
+				String data = null;
+				try {
+				    data = peerInfoList.getPeerInfoByIndex(i).getConnection().getData();
+				}
+				catch (Exception e) {
+				    System.out.println("Caught an exception trying to get data from peer -- do we need to do something here?");
+					continue;
+				}
 
 				// Keep getting data until there isn't any more to get
 				while (data != null && data.trim().equals("") == false) {
@@ -333,6 +340,9 @@ public class Peer2Peer {
 		// TODO: Remove this loop
 		// This loop only exists as a proof-of-concept to show that the connections are working
 		peer2Peer.startListenLoop();
+
+        // Should we ever reach here?
+		System.out.println("Made it past the listen loop");
 	}
 
     // Method to clean-up sleeps (don't have to ugly our code with the try/catch)

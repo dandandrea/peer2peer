@@ -36,7 +36,7 @@ public class ListenerThread extends Thread {
 		    }
 
             // Sleep and try again
-			System.out.println("ListenerThread eaiting for Peer2Peer constructor to finish");
+			System.out.println("ListenerThread waiting for Peer2Peer constructor to finish");
 			sleep(sleepMilliseconds);
 		}
 
