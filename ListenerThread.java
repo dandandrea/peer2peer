@@ -60,7 +60,16 @@ public class ListenerThread extends Thread {
 					NonblockingConnection connection = new NonblockingConnection(asynchronousSocketChannel);
 
 					// Do handshake
-					doHandshake(connection);
+					int remotePeerId = doHandshake(connection);
+
+					// Instantiate PeerThread
+					if (remotePeerId != -1) {
+					    System.out.println("ListenerThread successful handshake, creating PeerThread");
+                        PeerThread peerThread = new PeerThread(remotePeerId, connection, sleepMilliseconds);
+				        peerThread.start();
+					} else {
+					    System.out.println("ListenerThread handshake failed");
+					}
 
 				    // Close the channel
 				    asynchronousServerSocketChannel.close();
@@ -86,7 +95,7 @@ public class ListenerThread extends Thread {
 	// which in turn allows us to determine which
 	// slot in the PeerInfoList to place the
 	// connection in
-	private void doHandshake(NonblockingConnection connection) {
+	private int doHandshake(NonblockingConnection connection) {
 	    System.out.println("TODO: Implement real handshake");
 
 		// Fake the handshake for now
@@ -132,9 +141,8 @@ public class ListenerThread extends Thread {
                 // Got a valid peer ID
 			    System.out.println("Got valid handshake from remote peer ID " + remotePeerId);
 
-                // Store this connection in its approrpiate PeerInfoList slot
-			    peer2Peer.getPeerInfoList().getPeerInfo(remotePeerId).setConnection(connection);
-				break;
+				// Return the remote peer ID
+				return remotePeerId;
 			}
 
 			// Didn't get the remote peer ID yet, sleep and try again
@@ -143,6 +151,9 @@ public class ListenerThread extends Thread {
 			    sleep(sleepMilliseconds);
 			}
 		}
+
+		// Didn't get a valid handshake
+		return -1;
 	}
 
 	// Method to clean-up sleeps (don't have to ugly our code with the try/catch)

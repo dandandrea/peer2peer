@@ -6,7 +6,6 @@ public class PeerInfo {
     private String hostname;
     private int port;
     private int hasFile;
-	private NonblockingConnection connection;
 
     // Constructor
     public PeerInfo(int peerId, String hostname, int port, int hasFile) {
@@ -58,14 +57,4 @@ public class PeerInfo {
     public void setHasFile(int hasFile) {
         this.hasFile = hasFile;
     }
-
-	// Getter for connection
-	public NonblockingConnection getConnection() {
-	    return connection;
-	}
-
-	// Setter for connection
-	public void setConnection(NonblockingConnection connection) {
-	    this.connection = connection;
-	}
 }
