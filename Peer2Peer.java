@@ -292,4 +292,12 @@ public class Peer2Peer {
 		// Start PeerThreads
 		peer2Peer.startPeerThreads();
 	}
+
+    // Method to clean-up sleeps (don't have to ugly our code with the try/catch)
+    private void sleep(int duration) {
+        try {
+            Thread.sleep(duration);
+        }
+        catch (InterruptedException e) {}
+    }
 }

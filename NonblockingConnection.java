@@ -36,6 +36,15 @@ public class NonblockingConnection {
 		sendQueue = new ArrayDeque<String>();
 	}
 
+	// Constructor
+	public NonblockingConnection(AsynchronousSocketChannel asynchronousSocketChannel) {
+	    // Set AsynchronousSocketChannel
+		this.asynchronousSocketChannel = asynchronousSocketChannel;
+
+		// Instantiate the send queue
+		sendQueue = new ArrayDeque<String>();
+	}
+
 	// Get data from the server
 	public String getData() {
 		// Our receiving buffer
@@ -54,6 +63,11 @@ public class NonblockingConnection {
 		// while waiting for the first read() to succeed will result in this exception
 		// and because this is actually an expected condition
 		try {
+            // Instantiate handler if null
+			if (handler == null) {
+			    handler = new Handler();
+			}
+
 			// Do the read
 			asynchronousSocketChannel.read(receivingBuffer, receivingBuffer, handler);
 		}
