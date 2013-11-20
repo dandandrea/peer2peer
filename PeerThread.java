@@ -44,11 +44,13 @@ public class PeerThread extends Thread {
 			// Instantiate NonblockingConnection
 			connection = new NonblockingConnection(hostname, port);
 
-		    // Send handshake
-		    // Stub for now
-		    System.out.println("TODO: Implement real handshake send");
-		    connection.sendData(new Integer(Peer2Peer.peer2Peer.getPeerId()).toString() + "\n");
-
+			// Send handshake
+			// Stub for now
+		    	System.out.println("TODO: Implement real handshake send");
+		   	connection.sendData(new HandshakeMessage(Peer2Peer.peer2Peer.getPeerId()).toString());
+				
+		    	
+			
     		// Need to sleep so that this is the only contents in the receive buffer of the other side
     		sleep(sleepMilliseconds * 2);
 		}
@@ -72,7 +74,8 @@ public class PeerThread extends Thread {
 			transmissionNumber++;
 
 			// Send data to the remote peer
-			connection.sendData(new HandshakeMessage(Peer2Peer.peer2Peer.getPeerId()) + " (#" + transmissionNumber + ")\n");
+			//connection.sendData("Hello from "+ Peer2Peer.peer2Peer.getPeerId() + " (#" + transmissionNumber + ")\n");
+			connection.sendData(new BitfieldMessage().toString());
 
 			// Sleep
 			sleep(sleepMilliseconds);

@@ -1,23 +1,18 @@
 import java.util.*;
 import java.io.*;
 
-public class HandshakeMessage 
-{
-	//private static byte have 	 = 4;
-	
-	private int peerID;
-	private static int length = 32;
-	private String payload;
+public class HandshakeMessage {
+	private String message;
 
 	public HandshakeMessage(int peerID){	
-		payload = "HELLO "+peerID;
+		message = "HELLO00000000000000000000000000"+peerID;
 	}
 	
 	public String getPayload(){
-		return this.payload;
+		return this.message;
 	}
 
 	public String toString(){
-		return payload;
+		return message;
 	}
 }

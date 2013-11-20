@@ -12,15 +12,35 @@ public class MessageType
 	private static byte request	 = 6;
 	private static byte piece 	 = 7;*/
 
-	private int length;
-	private byte type;
+	protected int length;
+	protected int type;
+	protected String payload;
+	protected String message;
 	
-	public MessageType(int length, byte type)
+	public MessageType(int length, int type)
 	{	
 		this.length = length;	
 		this.type = type;
 	}
 
+	public MessageType(int type)
+	{	
+		length = 0;	
+		this.type = type;
+	}
+	protected void buildMessage(){
+		length = 5+payload.length();
+		//System.out.println("type: "+type);
+		//System.out.println("length :" +length);
+		message = length+(type+payload);
+		//System.out.println("message :"+ message);
+	}
+	
+	//this should be in the subclasses..this is for testing.
+	protected void buildPayload(){
+		payload = "asldkfhkasdf";
+	}	
+	
 	public void length(int len)
 	{
 		this.length = len;
@@ -31,8 +51,12 @@ public class MessageType
 		return this.length;
 	}
 
-	public byte getType()
+	public int getType()
 	{
 		return this.type;
+	}
+
+	public String toString(){
+		return message;	
 	}
 }

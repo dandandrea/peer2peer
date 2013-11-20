@@ -101,15 +101,29 @@ public class ListenerThread extends Thread {
 		// Fake the handshake for now
 		// Loop 10 times trying to get remote peer ID from connection
 		// Drop connection if cannot get remote peer ID
-		for (int i = 0; i < 10; i++) {
+		while(true) {
 		    // Get data
+
 		    String remotePeerIdCandidate = connection.getData();
 
             // Check if the data is a valid remote peer ID
-			if (remotePeerIdCandidate != null) {
+			if (remotePeerIdCandidate !=null) {
 			    // Trim the data
-			    remotePeerIdCandidate = remotePeerIdCandidate.trim();
+				//checking if handshake header is equal to "HELLO"
+				if(!remotePeerIdCandidate.trim().substring(0,5).equals("HELLO")){
+					System.out.println("Handchake message header is incorret");
+					break;
+				}
 
+			    //get the remotePeerIcCanidate from the end of the handshake message.
+			    System.out.println(remotePeerIdCandidate);
+			    try{
+			    	remotePeerIdCandidate = remotePeerIdCandidate.trim().substring(31,35);
+				}
+				catch(Exception e){
+					System.out.println("error parsing handshake message");
+					continue;
+				}	
                 // Display remote peer ID candidate
                 System.out.println("Got remote peer ID candidate: " + remotePeerIdCandidate);
 
@@ -146,10 +160,10 @@ public class ListenerThread extends Thread {
 			}
 
 			// Didn't get the remote peer ID yet, sleep and try again
-			if (i != 9) {
+			//if (i != 9) {
 			    System.out.println("Sleeping and trying to get handshake again");
 			    sleep(sleepMilliseconds);
-			}
+			//}
 		}
 
 		// Didn't get a valid handshake

@@ -3,18 +3,16 @@ import java.io.*;
 
 public class BitfieldMessage extends MessageType
 {
-	//private static byte bitfield	 = 5;
+	
 
-	private int payload;
+	private String message;
 
-	public BitfieldMessage(int length,byte type, int payload)
+	public BitfieldMessage()
 	{	
-		super(length,type);
-		this.payload = payload;
+		super(5);	
+			
+		buildPayload();	
+		buildMessage();
 	}
 
-	public int getPayload()
-	{
-		return this.payload;
-	}
 }
