@@ -32,7 +32,7 @@ public class MessageType
 		length = 5+payload.length();
 		//System.out.println("type: "+type);
 		//System.out.println("length :" +length);
-		message = length+(type+payload);
+		message = String.format("%04d", length)+(type+payload);
 		//System.out.println("message :"+ message);
 	}
 	

@@ -112,11 +112,11 @@ public class ListenerThread extends Thread {
 				//checking if handshake header is equal to "HELLO"
 				if(!remotePeerIdCandidate.trim().substring(0,5).equals("HELLO")){
 					System.out.println("Handchake message header is incorret");
-					break;
+					continue;
 				}
 
 			    //get the remotePeerIcCanidate from the end of the handshake message.
-			    System.out.println(remotePeerIdCandidate);
+			    //System.out.println(remotePeerIdCandidate);
 			    try{
 			    	remotePeerIdCandidate = remotePeerIdCandidate.trim().substring(31,35);
 				}
@@ -167,7 +167,7 @@ public class ListenerThread extends Thread {
 		}
 
 		// Didn't get a valid handshake
-		return -1;
+		//return -1;
 	}
 
 	// Method to clean-up sleeps (don't have to ugly our code with the try/catch)
