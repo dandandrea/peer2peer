@@ -17,6 +17,9 @@ public class Peer2Peer {
     private int fileSize;
     private int pieceSize;
 
+	// Has Piece List
+	private List hasPieceList;
+
     // PeerInfoList
     private PeerInfoList peerInfoList;
 
@@ -36,6 +39,9 @@ public class Peer2Peer {
         // Get the peer ID
         this.peerId = peerId;
 
+		// Init hasPieceList
+		hasPieceList = new ArrayList();		
+		
 		// Process configuration files
 		try {
 			// Parse Common.cfg
@@ -50,6 +56,9 @@ public class Peer2Peer {
 
 			// Validate PeerInfo.cfg
 			validatePeerInfoFile();
+
+			// Creates Has Piece List 
+			createHasPieceList(peerInfoList.getPeerInfoByIndex(0).getHasFile());
 		}
 		catch (Peer2PeerException e) {
 			System.out.println("Error encountered while processing configuration files: " + e.getMessage());
@@ -174,6 +183,7 @@ public class Peer2Peer {
 
     // Parse Common.cfg
     private void parseCommonConfigFile() throws Peer2PeerException {
+		int length;
         // Instantiate a Parser
         Parser parser = null;
         try {
@@ -190,12 +200,13 @@ public class Peer2Peer {
         fileName = getCommonConfigItem("FileName", false, parser);
         fileSize = Integer.parseInt(getCommonConfigItem("FileSize", true, parser));
         pieceSize = Integer.parseInt(getCommonConfigItem("PieceSize", true, parser));
+		
     }
 
     private String getCommonConfigItem(String key, boolean isInteger, Parser parser) throws Peer2PeerException {
         // Try to get the item from the parser by its key
         List<String> tokenList = parser.getListByKey(key);
-
+		
         // Was the key not found?
         if (tokenList == null) {
             throw new Peer2PeerException("ERROR: Could not get " + key + " from Common.cfg");
@@ -220,6 +231,19 @@ public class Peer2Peer {
         // Go ahead and return it
         return tokenList.get(1);
     }
+
+	// Creates Has Piece List upon initial start-up
+	private void createHasPieceList(int hasFile)
+	{
+		int size = fileSize/pieceSize;
+		if (hasFile == 1)
+		{
+			for (int i=1; i < size; i++)
+			{
+				hasPieceList.add(i);
+			}
+		}
+	}
 
     // Validate command-line arguments
     // Return peer ID if valid
@@ -300,4 +324,5 @@ public class Peer2Peer {
         }
         catch (InterruptedException e) {}
     }
+
 }
