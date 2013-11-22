@@ -1,20 +1,18 @@
 import java.util.*;
 import java.io.*;
 
-public class PieceMessage extends MessageType
+public class PieceMessage implements MessageType
 {
 	//private static byte piece 	 = 7;
+	int pieceNumber;
 
-	int payload;
-
-	public PieceMessage(int length, byte type, int payload)
-	{	
-		super(length,type);
-		this.payload = payload;
+	public PieceMessage()
+	{
+			
 	}
 
-	public int getPayload()
+	public String toString()
 	{
-		return this.payload;
+		return "9" + "7" + 	
 	}
 }
