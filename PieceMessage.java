@@ -39,4 +39,9 @@ public class PieceMessage implements Message
 	{
 		return this.piece;
 	}
+
+	public int getType()
+	{
+		return this.type;
+	}
 }

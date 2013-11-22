@@ -1,7 +1,7 @@
 import java.util.*;
 import java.io.*;
 
-public class HaveMessage extends MessageType
+public class HaveMessage 
 {
 	//private static byte have 	 = 4;
 	
@@ -9,7 +9,6 @@ public class HaveMessage extends MessageType
 	
 	public HaveMessage(int length, byte type, int payload)
 	{	
-		super(length,type);
 		this.payload = payload;
 	}
 	

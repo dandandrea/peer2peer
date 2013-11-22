@@ -1,7 +1,7 @@
 import java.util.*;
 import java.io.*;
 
-public class RequestMessage extends MessageType
+public class RequestMessage 
 {
 	//private static byte request	 = 6;
 
@@ -9,7 +9,6 @@ public class RequestMessage extends MessageType
 
 	public RequestMessage(int length, byte type, int payload)
 	{	
-		super(length,type);
 		this.payload = payload;
 	}
 
