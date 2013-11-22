@@ -35,11 +35,7 @@ public class MessageType
 		message = String.format("%04d", length)+(type+payload);
 		//System.out.println("message :"+ message);
 	}
-	
-	//this should be in the subclasses..this is for testing.
-	protected void buildPayload(){
-		payload = "asldkfhkasdf";
-	}	
+		
 	
 	public void length(int len)
 	{

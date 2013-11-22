@@ -12,7 +12,11 @@ public class BitfieldMessage extends MessageType
 		super(5);	
 			
 		buildPayload();	
-		buildMessage();
+		super.buildMessage();
 	}
 
+	//this should be in the subclasses..this is for testing.
+	protected void buildPayload(){
+		payload = "asldkfhkasdf";
+	}
 }
