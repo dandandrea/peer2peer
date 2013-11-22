@@ -1,18 +1,13 @@
 import java.util.*;
 import java.io.*;
 
-public class BitfieldMessage extends MessageType
+public class BitfieldMessage implements Message
 {
-	
-
-	private String message;
+	private 
 
 	public BitfieldMessage()
 	{	
-		super(5);	
-			
-		buildPayload();	
-		super.buildMessage();
+		
 	}
 
 	//this should be in the subclasses..this is for testing.
