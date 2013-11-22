@@ -1,3 +1,5 @@
+import java.util.*;
+
 // Class for holding PeerInfo
 // One instance of a PeerInfo class is created for each line in PeerInfo.cfg
 public class PeerInfo {
@@ -6,6 +8,9 @@ public class PeerInfo {
     private String hostname;
     private int port;
     private int hasFile;
+    private PeerThread peerThread;
+    private List<Integer> pieceList;
+
 
     // Constructor
     public PeerInfo(int peerId, String hostname, int port, int hasFile) {
@@ -13,10 +18,26 @@ public class PeerInfo {
         this.hostname = hostname;
         this.port = port;
         this.hasFile = hasFile;
+        pieceList = new ArrayList<Integer>();        
     }
 
     // Default constructor
-    public PeerInfo() {}
+    public PeerInfo() {
+        pieceList = new ArrayList<Integer>();     
+    }
+
+    //get peer thread
+    public PeerThread getPeerThread(){
+        return peerThread;
+    }
+
+    public void setPeerThread(PeerThread peerThread){
+        this.peerThread = peerThread;
+    }
+
+    public List<Integer> getPieceList(){
+        return pieceList;
+    }
 
     // Getter for peer ID
     public int getPeerId() {

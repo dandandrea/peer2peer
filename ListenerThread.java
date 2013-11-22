@@ -59,17 +59,16 @@ public class ListenerThread extends Thread {
 					// Instantiate NonblockingConnection
 					NonblockingConnection connection = new NonblockingConnection(asynchronousSocketChannel);
 
-					// Do handshake
+					//Do handshake
 					int remotePeerId = doHandshake(connection);
 
-					// Instantiate PeerThread
-					if (remotePeerId != -1) {
-					    System.out.println("ListenerThread successful handshake, creating PeerThread");
-                        PeerThread peerThread = new PeerThread(remotePeerId, connection, sleepMilliseconds);
-				        peerThread.start();
-					} else {
-					    System.out.println("ListenerThread handshake failed");
-					}
+					//send hand
+
+
+					//successful handshake
+				    System.out.println("ListenerThread successful handshake, creating PeerThread");
+                    PeerThread peerThread = new PeerThread(remotePeerId, connection, sleepMilliseconds);
+			        peerThread.start();
 
 				    // Close the channel
 				    asynchronousServerSocketChannel.close();

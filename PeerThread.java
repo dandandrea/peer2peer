@@ -1,5 +1,7 @@
 import java.io.*;
 import java.lang.*;
+import java.util.*;
+import java.util.concurrent.*;
 
 public class PeerThread extends Thread {
     // Remote peer ID
@@ -12,6 +14,10 @@ public class PeerThread extends Thread {
     // Connection for this PeerThread
 	private NonblockingConnection connection;
 
+	//thread safe queue
+	private Queue<Message> outboundMessageQueue;
+
+
     // PeerThread constructor
     public PeerThread(int remotePeerId, int sleepMilliseconds) throws IOException {
         // Set the remote peer ID
@@ -19,6 +25,9 @@ public class PeerThread extends Thread {
 
 		// Set the sleep milliseconds
 		this.sleepMilliseconds = sleepMilliseconds;
+
+		// set the outboundMessageQueue
+		outboundMessageQueue = new ConcurrentLinkedQueue<Message>();
     }
 
 	// PeerThread constructor
@@ -31,12 +40,17 @@ public class PeerThread extends Thread {
 
 		// Set the sleep milliseconds
 		this.sleepMilliseconds = sleepMilliseconds;
+
+		// set the outboundMessageQueue
+		outboundMessageQueue = new ConcurrentLinkedQueue<Message>();		
 	}
 
 	// Thread.run()
 	public void run() {
 	    // Do we already have a connection or do we need to establish a connection?
 	    // Did the listener thread construct this item or did Peer2Peer?
+
+	    //PeerThread is outbound
 		if (connection == null) {
 			// Determine hostname and port to connect to
 			String hostname = Peer2Peer.peer2Peer.getPeerInfoList().getPeerInfo(remotePeerId).getHostname();
@@ -50,24 +64,38 @@ public class PeerThread extends Thread {
 		    System.out.println("TODO: Implement real handshake send");
 
 		    //send handshake message to the inbound peerthread and wait for handshake back.
-		    int handshakeResponse = peerDoHandshake(connection);
-		    //connection.sendData(new HandshakeMessage(Peer2Peer.peer2Peer.getPeerId()).toString());
+		    int remotePeerID = peerDoHandshake(connection);
 		    
-		    if(handshakeResponse != -1){
+		    //add self to peerInfoList
+		    //TODO: test this
+		    Peer2Peer.peer2Peer.getPeerInfoList().getPeerInfo(remotePeerId).setPeerThread(this);
 
-			    //send bitfield message	
-			    //peerSendBitfield();
-			    connection.sendData(new BitfieldMessage().toString());	
-		    }
-    		// Need to sleep so that this is the only contents in the receive buffer of the other side
-    		sleep(sleepMilliseconds * 2);
+		    //TODO: only send if you actually need to...
+		    List<Integer> pieceList = Peer2Peer.peer2Peer.getPeerInfoList().getPeerInfo(Peer2Peer.peer2Peer.getPeerId()).getPieceList();
+		    if(pieceList.size() >0){
+				connection.sendData(new BitfieldMessage().toString());	
+			}
+			else{
+				System.out.println(Peer2Peer.peer2Peer.getPeerId()+" did not send BitfieldMessage");
+			}
 		}
-		//as a listenerThread spawned peerThread send a handShakeMessage
+		//peerThread is inbound  ie. listenerThread spawned peerThread send a handShakeMessage
 		else {
+			//add self to peerInfoList
+			Peer2Peer.peer2Peer.getPeerInfoList().getPeerInfo(remotePeerId).setPeerThread(this);
+
 			//send a handshake to the waiting outbound peerthread.
+			//TODO: test this
 			connection.sendData(new HandshakeMessage(Peer2Peer.peer2Peer.getPeerId()).toString());
+
 			sleep(sleepMilliseconds * 2);
-			connection.sendData(new BitfieldMessage().toString());
+			List<Integer> pieceList = Peer2Peer.peer2Peer.getPeerInfoList().getPeerInfo(Peer2Peer.peer2Peer.getPeerId()).getPieceList();
+		    if(pieceList.size() >0){
+				connection.sendData(new BitfieldMessage().toString());	
+			}
+			else{
+				System.out.println(Peer2Peer.peer2Peer.getPeerId()+" did not send BitfieldMessage");
+			}
 		}
 
 		// We'll use this for now to track the order in which transmissions arrive
@@ -75,6 +103,17 @@ public class PeerThread extends Thread {
 
 		// This is the main loop of the thread
 		while (true) {
+
+
+
+
+
+
+
+			
+			//do i need to send you anything?
+			//do i need to get data?
+
             System.out.println("PeerThread looking for data");
 
 			// Get data from remote peer
@@ -94,7 +133,13 @@ public class PeerThread extends Thread {
 
 			// Sleep
 			sleep(sleepMilliseconds);
+			
 		}
+	}
+
+	// Method to add a message to the outboundMessageQueue
+	public void sendMessage(Message message){
+		outboundMessageQueue.add(message);
 	}
 
 	// Method to clean-up sleeps (don't have to ugly our code with the try/catch)
@@ -119,11 +164,18 @@ public class PeerThread extends Thread {
 			if (remotePeerIdCandidate !=null) {
 			    // Trim the data
 				//checking if handshake header is equal to "HELLO"
-				if(!remotePeerIdCandidate.trim().substring(0,5).equals("HELLO")){
-					System.out.println("Handchake message header is incorret");
+
+				try{
+					if(!remotePeerIdCandidate.trim().substring(0,5).equals("HELLO")){
+						System.out.println("Handchake message header is incorret");
+						continue;
+					}
+				}
+				catch(Exception e){
+					System.out.println("error parsing handshake message");
+					e.printStackTrace();
 					continue;
 				}
-
 			    //get the remotePeerIcCanidate from the end of the handshake message.
 			    //System.out.println(remotePeerIdCandidate);
 			    try{
@@ -131,6 +183,7 @@ public class PeerThread extends Thread {
 				}
 				catch(Exception e){
 					System.out.println("error parsing handshake message");
+					e.printStackTrace();
 					continue;
 				}	
 	            // Display remote peer ID candidate
@@ -174,5 +227,9 @@ public class PeerThread extends Thread {
 			    sleep(sleepMilliseconds);
 			//}
 		}
+	}
+
+	private void handleMessage(){
+
 	}
 }

@@ -1,6 +1,5 @@
 import java.io.*;
 import java.util.concurrent.*;
-import java.io.*;
 import java.util.*;
 import java.lang.*;
 
@@ -16,9 +15,6 @@ public class Peer2Peer {
     private String fileName;
     private int fileSize;
     private int pieceSize;
-
-	// Has Piece List
-	private List hasPieceList;
 
     // PeerInfoList
     private PeerInfoList peerInfoList;
@@ -39,9 +35,6 @@ public class Peer2Peer {
         // Get the peer ID
         this.peerId = peerId;
 
-		// Init hasPieceList
-		hasPieceList = new ArrayList();		
-		
 		// Process configuration files
 		try {
 			// Parse Common.cfg
@@ -57,8 +50,8 @@ public class Peer2Peer {
 			// Validate PeerInfo.cfg
 			validatePeerInfoFile();
 
-			// Creates Has Piece List 
-			createHasPieceList(peerInfoList.getPeerInfoByIndex(0).getHasFile());
+            // populate pieceList
+            populatePieceList();
 		}
 		catch (Peer2PeerException e) {
 			System.out.println("Error encountered while processing configuration files: " + e.getMessage());
@@ -233,14 +226,14 @@ public class Peer2Peer {
     }
 
 	// Creates Has Piece List upon initial start-up
-	private void createHasPieceList(int hasFile)
+	private void populatePieceList()
 	{
-		int size = fileSize/pieceSize;
-		if (hasFile == 1)
+		int size = (int)Math.ceil(fileSize/pieceSize);
+		if (peerInfoList.getPeerInfo(peerId).getHasFile() == 1)
 		{
 			for (int i=1; i < size; i++)
 			{
-				hasPieceList.add(i);
+				peerInfoList.getPeerInfo(peerId).getPieceList().add(i);
 			}
 		}
 	}
