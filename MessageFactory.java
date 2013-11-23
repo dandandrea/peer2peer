@@ -1,4 +1,4 @@
-/*
+
 import java.lang.*;
 
 public class MessageFactory{
@@ -16,25 +16,26 @@ public class MessageFactory{
 			System.out.println("ERROR: toMessage(): Failed to extract message type.");
 			e.printStackTrace();
 		}
+		//if i was able to parse the messageString try to build a message object
 		if(type !=-1){
 			try{
 				switch (type){
 					case 0: 
-						return new ChokeMessage();
+						return new ChokeMessage(messageString);
 					case 1:
-						return new UnchokeMessage();
+						return new UnchokeMessage(messageString);
 					case 2:
-						return new InterestedMessage();
+						return new InterestedMessage(messageString);
 					case 3:
-						return new NotInterestedMessage();
+						return new NotInterestedMessage(messageString);
 					case 4:
-						return new HaveMessage();
+						return new HaveMessage(messageString);
 					case 5:
-						return new BitfieldMessage();
+						return new BitfieldMessage(messageString);
 					case 6:
-						return new RequestMessage();
+						return new RequestMessage(messageString);
 					case 7:
-						return new PieceMessage();
+						return new PieceMessage(messageString);
 				}
 			}
 			catch(Exception e){
@@ -44,4 +45,3 @@ public class MessageFactory{
 		}	
 	}
 }
-*/

@@ -16,7 +16,7 @@ public class PeerThread extends Thread {
 
 	//thread safe queue
 	private Queue<Message> outboundMessageQueue;
-
+	private Queue<Message> inboundMessageQueue;
 
     // PeerThread constructor
     public PeerThread(int remotePeerId, int sleepMilliseconds) throws IOException {
@@ -28,6 +28,9 @@ public class PeerThread extends Thread {
 
 		// set the outboundMessageQueue
 		outboundMessageQueue = new ConcurrentLinkedQueue<Message>();
+
+		// set the inboundMessageQueue
+		inboundMessageQueue = new ConcurrentLinkedQueue<Message>();
     }
 
 	// PeerThread constructor
@@ -43,6 +46,9 @@ public class PeerThread extends Thread {
 
 		// set the outboundMessageQueue
 		outboundMessageQueue = new ConcurrentLinkedQueue<Message>();		
+
+		// set the inboundMessageQueue 
+		inboundMessageQueue = new ConcurrentLinkedQueue<Message>();
 	}
 
 	// Thread.run()
@@ -104,15 +110,25 @@ public class PeerThread extends Thread {
 		// This is the main loop of the thread
 		while (true) {
 
+			// If I have any messages I need to send, get the first message and send it.
+			if(outboundMessageQueue.size() > 0){
+
+				// get and remove the first message from the outboundMessageQueue
+				Message sendThisMessage = outboundMessageQueue.poll();
+				
+				//send the message using NBC.
+				connection.sendData(sendThisMessage.toString());
+			}
+
+			// populate inbountMessageQueue with all possible messages from connection.getData() with the help of dechunkin
+			populateMessageQueue();
 
 
-
-
-
-
-			
-			//do i need to send you anything?
-			//do i need to get data?
+			// Check to see if I should handle a message sent to me by my remotePeer
+			if(inboundMessageQueue.size() > 0){
+				//TODO: write the handle message switch case method.
+				//messageHandler.handle(message);
+			}
 
             System.out.println("PeerThread looking for data");
 
@@ -123,7 +139,7 @@ public class PeerThread extends Thread {
 			if (data != null) {
 				System.out.println("Peer ID " + Peer2Peer.peer2Peer.getPeerId() + " got data from peer ID " + remotePeerId + ":\n" + data);
 			}
-
+			
 			// Increment the transmission number
 			transmissionNumber++;
 
@@ -140,6 +156,26 @@ public class PeerThread extends Thread {
 	// Method to add a message to the outboundMessageQueue
 	public void sendMessage(Message message){
 		outboundMessageQueue.add(message);
+	}
+
+	// Populate the message queue from inbound data.
+	private void populateMessageQueue(){
+
+		// Get data from the NBC buffer
+		String fullMessageString = connection.getData();
+
+		// Break apart fullMessageString into individual messageStrings
+		List<String> dechunkedMessageList = dechunkin(fullMessageString);
+
+		// for each messageString build a message object and add it to the inboundMessageQueue
+		for (String messageString  : dechunkedMessageList) {
+
+			// Build a message object by using the message factory
+			Message message = MessageFactory.toMessage(messageString);
+
+			//add that message object to the inboundMessageQeue
+         	inboundMessageQueue.add(message);
+      }
 	}
 
 	// Method to clean-up sleeps (don't have to ugly our code with the try/catch)
