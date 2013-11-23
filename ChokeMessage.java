@@ -3,10 +3,42 @@ import java.io.*;
 
 public class ChokeMessage 
 {
-	//private static byte coke 	 = 0;
+	private final int type = 0;
+	private int length;
+	private String payload;
 
-	public ChokeMessage(int length, byte type)
+	// Constructor for Choke_M
+	public ChokeMessage()
 	{	
+		this.payload = " SCUMBAG I am Choking YOU!! ";
+		this.length = 5 + payload.length();
 	}
 
+	// Deserialize Constructor
+	public ChokeMessage(String message)
+	{
+		if ( Integer.parseInt(message.substring(5,5)) == type)
+		{
+			System.out.println(" ERROR: Invalid Message Type ");
+		}
+		this.length = message.length();
+		this.payload = message.substring(6,length);
+	}
+
+	// To String
+	public String toString()
+	{
+		return length + (type + payload);
+	}
+
+	// The get functions
+	public int getLength()
+	{
+		return this.length;
+	}
+	
+	public int getType()
+	{
+		return this.type;
+	}
 }
