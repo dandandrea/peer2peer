@@ -1,11 +1,44 @@
 import java.util.*;
 import java.io.*;
 
-public class NotInterestedMessage 
+public class NotInterestedMessage implements Message
 {
-	//private static byte notInterested = 3;
+	private final int type = 3;
+	private int length;
+	private String payload;
 
-	public NotInterestedMessage(int length, byte type)
+	// Constructor for Not Interested_M
+	public NotInterestedMessage()
 	{	
+		this.payload = " SCUMBAG I am NOT-INTERESTED!! ";
+		this.length = 5 + payload.length();
+	}
+
+	// Deserialize Constructor
+	public InterestedMessage(String message)
+	{
+		if ( Integer.parseInt(message.substring(5,5)) == type)
+		{
+			System.out.println(" ERROR: Invalid Message Type ");
+		}
+		this.length = message.length();
+		this.payload = message.substring(6,length);
+	}
+
+	// To String 
+	public String toString()
+	{
+		return length + (type + payload);
+	}
+
+	// The get functions
+	public int getLength()
+	{
+		return this.length;
+	}
+	
+	public int getType()
+	{
+		return this.type;
 	}
 }

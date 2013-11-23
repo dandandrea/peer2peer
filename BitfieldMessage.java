@@ -9,11 +9,23 @@ public class BitfieldMessage implements Message
 	private final int type = 5;
 	private String message;
 
-	// Constructor
+	// Constructor for Bitfield_M
 	public BitfieldMessage()
 	{
 		message = "Hello World";	
 		this.length = 5 + message.length();
+	}
+
+	// Deserialize Constructor
+	public BitfieldMessage(String message)
+	{
+		if ( Integer.parseInt(message.substring(5,5)) == type)
+		{
+			System.out.println(" ERROR: Invalid Message Type ");
+		}
+		this.message = message;
+		this.length = message.length();
+		this.payload = message.substring(6,length);
 	}
 
 	// To String
@@ -22,6 +34,7 @@ public class BitfieldMessage implements Message
 		return length + (type + message);
 	}
 
+	// The get functions
 	public String getPayLoad()
 	{
 		return this.payload;
