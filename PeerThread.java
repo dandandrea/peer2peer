@@ -129,8 +129,12 @@ public class PeerThread extends Thread {
 			}
 
 			// populate inboundMessageQueue with all possible messages from connection.getData() with the help of dechunkin
-			populateInboundMessageQueue();
-
+			try {
+				populateInboundMessageQueue();
+			}
+			catch (Peer2PeerException e) {
+				System.out.println("ERROR: Caught Peer2PeerException while calling populateInboundMessageQueue: " + e.getMessage());
+			}
 
 			// Check to see if I should handle the next message sent to me by my remotePeer.
 			if(inboundMessageQueue.size() > 0){
@@ -141,35 +145,8 @@ public class PeerThread extends Thread {
 				// handle that massage
 				messageHandler.handleMessage(message);
 			}
-
-
-
-
-
-		/*
-
-            System.out.println("PeerThread looking for data");
-
-			// Get data from remote peer
-			String data = connection.getData();
-
-			// Display data, if any
-			if (data != null) {
-				System.out.println("Peer ID " + Peer2Peer.peer2Peer.getPeerId() + " got data from peer ID " + remotePeerId + ":\n" + data);
-			}
-			
-			// Increment the transmission number
-			transmissionNumber++;
-
-			// Send data to the remote peer
-			connection.sendData("Hello from "+ Peer2Peer.peer2Peer.getPeerId() + " (#" + transmissionNumber + ")\n");
-			
-
 			// Sleep
-			sleep(sleepMilliseconds);
-
-		*/
-			
+			sleep(sleepMilliseconds);			
 		}
 	}
 
@@ -179,22 +156,26 @@ public class PeerThread extends Thread {
 	}
 
 	// Populate the message queue from inbound data.
-	private void populateInboundMessageQueue(){
+	private void populateInboundMessageQueue() throws Peer2PeerException {
 
 		// Get data from the NBC buffer
 		String fullMessageString = connection.getData();
 
-		// Break apart fullMessageString into individual messageStrings
-		List<String> dechunkedMessageList = dechunkin(fullMessageString);
+		System.out.println("populateInboundMessageQueue(): fullMessageString: "+fullMessageString);
 
-		// for each messageString build a message object and add it to the inboundMessageQueue
-		for (String messageString  : dechunkedMessageList) {
+		if(fullMessageString != null){
+			// Break apart fullMessageString into individual messageStrings
+			List<String> dechunkedMessageList = dechunkin(fullMessageString);
+		
+			// for each messageString build a message object and add it to the inboundMessageQueue
+			for (String messageString  : dechunkedMessageList) {
 
-			// Build a message object by using the message factory
-			Message message = MessageFactory.toMessage(messageString);
+				// Build a message object by using the message factory
+				Message message = MessageFactory.toMessage(messageString);
 
-			//add that message object to the inboundMessageQeue
-         	inboundMessageQueue.add(message);
+				//add that message object to the inboundMessageQeue
+	         	inboundMessageQueue.add(message);
+        }
       }
 	}
 
@@ -318,13 +299,20 @@ public class PeerThread extends Thread {
 			// are the payload
 
 			// Get the length of this message
-			int messageLength = Integer.parseInt(inputString.substring(0, 4));
+			int messageLength;
+			try {
+				messageLength = Integer.parseInt(inputString.substring(0, 4));
+			}
+			catch (NumberFormatException e) {
+				System.out.println("ERROR: Message has invalid format, got bad length header [string is: " + inputString + "] [length is: " + inputString.length() + "]: " + e.getMessage());
+				break;
+			}
 			System.out.println("Got message with length of " + messageLength);
 
 			// Does the indicated length of the message exceed
 			// the actual length of the remaining message?
 			if (messageLength > inputString.length()) {
-			    System.out.println("ERROR: Indicated length (" + messageLength + ") exceedds actual length of remaining string (" + inputString.length() + ")");
+			    System.out.println("ERROR: Indicated length (" + messageLength + ") exceeds actual length of remaining string (" + inputString.length() + ")");
 				break;
 			}
 

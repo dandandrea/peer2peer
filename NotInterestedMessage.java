@@ -15,7 +15,7 @@ public class NotInterestedMessage implements Message
 	}
 
 	// Deserialize Constructor
-	public InterestedMessage(String message)
+	public NotInterestedMessage(String message)
 	{
 		if ( Integer.parseInt(message.substring(5,5)) == type)
 		{

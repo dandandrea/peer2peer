@@ -92,6 +92,11 @@ public class NonblockingConnection {
 			// Reset completed flag
 			handler.resetCompleted();
 
+			// Trim the data, if it is not null
+			if (_data != null) {
+				_data = _data.trim();
+			}
+
 			// Return the data that the handler received
 			return _data;
 		} else {

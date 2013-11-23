@@ -1,7 +1,7 @@
 import java.util.*;
 import java.io.*;
 
-public class RequestMessage 
+public class RequestMessage implements Message
 {
 	private String payload;
 	private int length;

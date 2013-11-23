@@ -19,19 +19,18 @@ public class BitfieldMessage implements Message
 	// Deserialize Constructor
 	public BitfieldMessage(String message)
 	{
-		if ( Integer.parseInt(message.substring(5,5)) == type)
+		if ( Integer.parseInt(message.substring(4,5)) == type)
 		{
 			System.out.println(" ERROR: Invalid Message Type ");
 		}
-		this.message = message;
 		this.length = message.length();
-		this.payload = message.substring(6,length);
+		this.message = message.substring(6,length);
 	}
 
 	// To String
 	public String toString()
 	{
-		return length + (type + message);
+		return String.format("%04d", length) + (type + message);
 	}
 
 	// The get functions

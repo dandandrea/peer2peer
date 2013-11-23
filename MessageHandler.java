@@ -1,13 +1,26 @@
-Public class MessageHandler{
+public class MessageHandler{
 
 	// handle on peerInfoList to update
 	private PeerInfoList peerInfoList;
 
 
 	public MessageHandler(PeerInfoList peerInfoList){
-		this.peerInfoList = peerInfoList
+		this.peerInfoList = peerInfoList;
 	}
 
+	public void handleMessage(Message message){
+		if(message instanceof BitfieldMessage){
+			MessageHandler mh = new BitfieldMessageHandler(peerInfoList);
+			mh.handleMessage(message);
+		}
+		else{
+			System.out.println("ERROR: handleMessage(): WHY AM I HERE");
+		}
+	}
+
+
+
+/*
 	public void handleMessage(ChokeMessage chokeMessage){
 		ChokeMessageHandler mh = new ChokeMessageHandler(peerInfoList);
 		m.handleMessage(chokeMessage);
@@ -15,24 +28,24 @@ Public class MessageHandler{
 
 	public void handleMessage(UnchokeMessage unchokeMessage){
 		UnchokeMessageHandler mh = new UnchokeMessageHandler(peerInfoList);
-		mh.handleMessage(unchokeMessage);
+		mh.handleMessage(unchokeMessage); 
 	}
 
-	public void handleMessage(InterstedMessage interestedMessage){
-		InterstedMessageHandler mh = new InterstedMessageHandler(peerInfoList);
-		mh.handleMessage(interstedMessage);
+	public void handleMessage(InterestedMessage interestedMessage){
+		InterstedMessageHandler mh = new InterestedMessageHandler(peerInfoList);
+		mh.handleMessage(interestedMessage);
 	}
 
-	public void handleMessage(NotInterstedMessage notInterestedMessage){
-		NotInterstedMessageHandler mh = new NotInterstedMessageHandler(peerInfoList);
-		mh.handleMessage(notInterstedMessage);
+	public void handleMessage(NotInterestedMessage notInterestedMessage){
+		NotInterestedMessageHandler mh = new NotInteretedMessageHandler(peerInfoList);
+		mh.handleMessage(notInterestedMessage);
 	}
-
+*/
 	public void handleMessage(BitfieldMessage bitfieldMessage){
-		BitfieldMessageHandler mh = new bitfieldMessageHandler(peerInfoList);
+		BitfieldMessageHandler mh = new BitfieldMessageHandler(peerInfoList);
 		mh.handleMessage(bitfieldMessage);
 	}
-
+/*
 	public void handleMessage(RequestMessage requestMessage){
 		RequestMessageHandler mh = new RequestMessageHandler(peerInfoList);
 		mh.handleMessage(requestMessage);
@@ -42,7 +55,7 @@ Public class MessageHandler{
 		PieceMessageHandler mh = new PieceMessageHandler(peerInfoList);
 		mh.handleMessage(pieceMessage);
 	}
-
+*/
 
 
 }

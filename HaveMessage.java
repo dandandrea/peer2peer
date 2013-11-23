@@ -1,7 +1,7 @@
 import java.util.*;
 import java.io.*;
 
-public class HaveMessage 
+public class HaveMessage implements Message
 {
 	private final int type = 4;
 	private int length;

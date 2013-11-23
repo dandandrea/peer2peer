@@ -1,7 +1,7 @@
 import java.util.*;
 import java.io.*;
 
-public class ChokeMessage 
+public class ChokeMessage implements Message
 {
 	private final int type = 0;
 	private int length;

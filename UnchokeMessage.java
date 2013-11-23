@@ -1,7 +1,7 @@
 import java.util.*;
 import java.io.*;
 
-public class UnchokeMessage 
+public class UnchokeMessage implements Message
 {
 private final int type = 1;
 	private int length;
