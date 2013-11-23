@@ -232,4 +232,62 @@ public class PeerThread extends Thread {
 	private void handleMessage(){
 
 	}
+
+	// Method to do dechunkin'
+	// Takes a string which comes from connection.getData() and breaks it into 1 or more strings,
+	// each of which represent a single message
+	// This is needed because a single call to connection.getData() could result in returning
+	// one long string with several messages within it
+	private List<String> dechunkin(String inputString) {
+	    // Instantiate the message string list to be returnd
+		List<String> messageStringList = new ArrayList<String>();
+
+		// Loop and do dechunkin'
+		while (true) {
+	        // Gotta say "dechunkin'" because "dechunkin'"!
+		    System.out.println("Trying to dechunkin' another message");
+
+		    // Are there no more messages?
+			if (inputString == null || inputString.length() == 0) {
+			    System.out.println("No more messages to dechunkin'");
+			    break;
+			}
+
+            // Do we have a message whose length is greater than 0 but less than 6?
+			// That would be an invalid message because it would have a 0 length payload
+			if (inputString.length() < 6) {
+			    System.out.println("ERROR: Got message with invalid format: " + inputString);
+				break;
+			}
+
+			// If we made it here then we have a message whose length is at least 6
+			// We'll take this to mean there are 4 bytes of "length" information,
+			// 1 byte of "type" information, and that the remaining "length" bytes
+			// are the payload
+
+			// Get the length of this message
+			int messageLength = Integer.parseInt(inputString.substring(0, 4));
+			System.out.println("Got message with length of " + messageLength);
+
+			// Does the indicated length of the message exceed
+			// the actual length of the remaining message?
+			if (messageLength > inputString.length()) {
+			    System.out.println("ERROR: Indicated length (" + messageLength + ") exceedds actual length of remaining string (" + inputString.length() + ")");
+				break;
+			}
+
+			// We can extract the message now that we have the length
+			String extractedMessage = inputString.substring(0, messageLength);
+			System.out.println("Extracted a message: " + extractedMessage);
+
+			// Add the extracted message to the message string list
+			messageStringList.add(extractedMessage);
+
+			// Remove the extracted message from the input string
+			inputString = inputString.substring(messageLength, inputString.length());
+		}
+
+		// Return the message string list
+		return messageStringList;
+	}
 }
