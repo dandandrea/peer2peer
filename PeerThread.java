@@ -18,6 +18,8 @@ public class PeerThread extends Thread {
 	private Queue<Message> outboundMessageQueue;
 	private Queue<Message> inboundMessageQueue;
 
+	private MessageHandler messageHandler;
+
     // PeerThread constructor
     public PeerThread(int remotePeerId, int sleepMilliseconds) throws IOException {
         // Set the remote peer ID
@@ -31,6 +33,9 @@ public class PeerThread extends Thread {
 
 		// set the inboundMessageQueue
 		inboundMessageQueue = new ConcurrentLinkedQueue<Message>();
+
+		//set messageHandler
+		messageHandler =  new MessageHandler(Peer2Peer.peer2Peer.getPeerInfoList());
     }
 
 	// PeerThread constructor
@@ -49,6 +54,9 @@ public class PeerThread extends Thread {
 
 		// set the inboundMessageQueue 
 		inboundMessageQueue = new ConcurrentLinkedQueue<Message>();
+
+		//set messageHandler
+		messageHandler =  new MessageHandler(Peer2Peer.peer2Peer.getPeerInfoList());
 	}
 
 	// Thread.run()
@@ -120,15 +128,25 @@ public class PeerThread extends Thread {
 				connection.sendData(sendThisMessage.toString());
 			}
 
-			// populate inbountMessageQueue with all possible messages from connection.getData() with the help of dechunkin
-			populateMessageQueue();
+			// populate inboundMessageQueue with all possible messages from connection.getData() with the help of dechunkin
+			populateInboundMessageQueue();
 
 
-			// Check to see if I should handle a message sent to me by my remotePeer
+			// Check to see if I should handle the next message sent to me by my remotePeer.
 			if(inboundMessageQueue.size() > 0){
-				//TODO: write the handle message switch case method.
-				//messageHandler.handle(message);
+
+				// get and remove the first message from the inboundMessageQueue
+				Message message = inboundMessageQueue.poll();
+
+				// handle that massage
+				messageHandler.handleMessage(message);
 			}
+
+
+
+
+
+		/*
 
             System.out.println("PeerThread looking for data");
 
@@ -149,6 +167,8 @@ public class PeerThread extends Thread {
 
 			// Sleep
 			sleep(sleepMilliseconds);
+
+		*/
 			
 		}
 	}
@@ -159,7 +179,7 @@ public class PeerThread extends Thread {
 	}
 
 	// Populate the message queue from inbound data.
-	private void populateMessageQueue(){
+	private void populateInboundMessageQueue(){
 
 		// Get data from the NBC buffer
 		String fullMessageString = connection.getData();
@@ -263,10 +283,6 @@ public class PeerThread extends Thread {
 			    sleep(sleepMilliseconds);
 			//}
 		}
-	}
-
-	private void handleMessage(){
-
 	}
 
 	// Method to do dechunkin'
