@@ -45,6 +45,24 @@ public class PeerInfoList {
 		return peerInfoList.size();
 	}
 
+	// Method to get a list of interested peers
+	public List<Integer> getInterestedList() {
+	    // The list of interested peers
+		List<Integer> interestedList = new ArrayList<Integer>();
+
+		// Add the interested peers
+		for (int i = 0; i < peerInfoList.size(); i++) {
+		    // Is this peer interested? If so then add it to the list
+			if (peerInfoList.get(i).getIsInterested() == true) {
+			    // Add it
+				interestedList.add(peerInfoList.get(i).getPeerId());
+			}
+		}
+
+		// Return the interested list
+		return interestedList;
+	}
+
 	public void dump() {
 	    for (int i = 0; i < peerInfoList.size(); i++) {
 		    System.out.println(i + ": " + peerInfoList.get(i).getHostname() + " " + peerInfoList.get(i).getPort());
