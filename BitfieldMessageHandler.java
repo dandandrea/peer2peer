@@ -9,10 +9,17 @@ public class BitfieldMessageHandler extends MessageHandler{
 
 		System.out.println("BitfieldMessageHandler: "+ bitfieldMessage.toString());
 
+/*
+
+		for each piece in bitfield.pieceList
+			getPeerInfoList().getPeerInfo(remotePeerId).getPieceList().add(piece)
+
+
+
 		System.out.println("adding 1 to remotePeer's pieceList: "+getPeerInfoList().getPeerInfo(remotePeerId).getPieceList().add(1));
 		System.out.println(getPeerInfoList().getPeerInfo(remotePeerId).getPieceList().get(0));
 
-
+*/
 		//Do work to the bitfield of the peer you are connected to. this might need to be a syncrinized.
 
 		//if remotePeer has pieces this peer does not have

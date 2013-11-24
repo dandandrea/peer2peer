@@ -5,12 +5,10 @@ public class ChokeMessage implements Message
 {
 	private final int type = 0;
 	private int length;
-	private String payload;
 
 	// Constructor for Choke_M
 	public ChokeMessage()
 	{	
-		this.payload = " SCUMBAG I am Choking YOU!! ";
 		this.length = 5 + payload.length();
 	}
 
