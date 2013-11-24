@@ -295,16 +295,24 @@ public class PeerThread extends Thread {
 			    break;
 			}
 
+			// Is this a handshake message? If so then just throw it out
+			if (inputString.substring(0, 5).equals("HELLO") == true) {
+			    System.out.println("Discarding handshake message");
+				inputString = inputString.substring(5, inputString.length());
+				continue;
+			}
+
             // Do we have a message whose length is greater than 0 but less than 6?
-			// That would be an invalid message because it would have a 0 length payload
-			if (inputString.length() < 6) {
+			// That would be an invalid message because the "length" field
+			// takes 4 bytes and the "type" field takes 1 byte
+			if (inputString.length() < 5) {
 			    System.out.println("ERROR: Got message with invalid format: " + inputString);
 				break;
 			}
 
 			// If we made it here then we have a message whose length is at least 6
-			// We'll take this to mean there are 4 bytes of "length" information,
-			// 1 byte of "type" information, and that the remaining "length" bytes
+			// We'll take this to mean there are 4 bytes for the "length" field,
+			// 1 byte for the "type" field, and that the remaining "length" bytes
 			// are the payload
 
 			// Get the length of this message
