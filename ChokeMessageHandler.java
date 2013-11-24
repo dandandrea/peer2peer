@@ -1,7 +1,7 @@
 public class ChokeMessageHandler extends MessageHandler{
 
-	public ChokeMessageHandler(PeerInfoList peerInfoList){
-		super(peerInfoList);
+	public ChokeMessageHandler(PeerInfoList peerInfoList , int remotePeerId){
+		super(peerInfoList , remotePeerId);
 	}
 
 	public void handleMessage(Message message){

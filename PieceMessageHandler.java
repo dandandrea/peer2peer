@@ -1,7 +1,7 @@
 public class PieceMessageHandler extends MessageHandler{
 
-	public PieceMessageHandler(PeerInfoList peerInfoList){
-		super(peerInfoList);
+	public PieceMessageHandler(PeerInfoList peerInfoList, int remotePeerId){
+		super(peerInfoList , remotePeerId);
 	}
 
 	public void handleMessage(Message message){

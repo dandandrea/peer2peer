@@ -35,7 +35,7 @@ public class PeerThread extends Thread {
 		inboundMessageQueue = new ConcurrentLinkedQueue<Message>();
 
 		//set messageHandler
-		messageHandler =  new MessageHandler(Peer2Peer.peer2Peer.getPeerInfoList());
+		messageHandler =  new MessageHandler(Peer2Peer.peer2Peer.getPeerInfoList() , remotePeerId);
     }
 
 	// PeerThread constructor
@@ -56,7 +56,7 @@ public class PeerThread extends Thread {
 		inboundMessageQueue = new ConcurrentLinkedQueue<Message>();
 
 		//set messageHandler
-		messageHandler =  new MessageHandler(Peer2Peer.peer2Peer.getPeerInfoList());
+		messageHandler =  new MessageHandler(Peer2Peer.peer2Peer.getPeerInfoList() , remotePeerId);
 	}
 
 	// Thread.run()
@@ -95,7 +95,7 @@ public class PeerThread extends Thread {
 		    
 		    // If pieceList isnt empty, send a bitfieldMessage.
 		    if(pieceList.size() >0){
-		    	connection.sendData(new BitfieldMessage().toString());	
+		    	connection.sendData(new BitfieldMessage(pieceList).toString());	
 				//connection.sendData(new BitfieldMessage(pieceList).toString());	
 			}
 			else{
@@ -104,17 +104,19 @@ public class PeerThread extends Thread {
 		}
 		//peerThread is inbound  ie. listenerThread spawned peerThread send a handShakeMessage
 		else {
-			//add self to peerInfoList
-			Peer2Peer.peer2Peer.getPeerInfoList().getPeerInfo(remotePeerId).setPeerThread(this);
 
 			//send a handshake to the waiting outbound peerthread.
 			//TODO: test this
 			connection.sendData(new HandshakeMessage(Peer2Peer.peer2Peer.getPeerId()).toString());
 
+			//add self to peerInfoList
+			Peer2Peer.peer2Peer.getPeerInfoList().getPeerInfo(remotePeerId).setPeerThread(this);
+
+
 			sleep(sleepMilliseconds * 2);
 			List<Integer> pieceList = Peer2Peer.peer2Peer.getPeerInfoList().getPeerInfo(Peer2Peer.peer2Peer.getPeerId()).getPieceList();
 		    if(pieceList.size() >0){
-				connection.sendData(new BitfieldMessage().toString());	
+				connection.sendData(new BitfieldMessage(pieceList).toString());	
 				//connection.sendData(new BitfieldMessage(pieceList).toString());
 			}
 			else{

@@ -1,7 +1,7 @@
 public class HaveMessageHandler extends MessageHandler{
 
-	public HaveMessageHandler(PeerInfoList peerInfoList){
-		super(peerInfoList);
+	public HaveMessageHandler(PeerInfoList peerInfoList , int remotePeerId){
+		super(peerInfoList , remotePeerId);
 	}
 
 	public void handleMessage(Message message){

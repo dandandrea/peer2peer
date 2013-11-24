@@ -1,7 +1,7 @@
 public class UnchokeMessageHandler extends MessageHandler{
 
-	public UnchokeMessageHandler(PeerInfoList peerInfoList){
-		super(peerInfoList);
+	public UnchokeMessageHandler(PeerInfoList peerInfoList , int remotePeerId){
+		super(peerInfoList , remotePeerId);
 	}
 
 	public void handleMessage(Message message){

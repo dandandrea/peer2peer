@@ -9,7 +9,7 @@ public class ChokeMessage implements Message
 	// Constructor for Choke_M
 	public ChokeMessage()
 	{	
-		this.length = 5 + payload.length();
+		this.length = 5;
 	}
 
 	// Deserialize Constructor
@@ -20,13 +20,12 @@ public class ChokeMessage implements Message
 			System.out.println(" ERROR: Invalid Message Type ");
 		}
 		this.length = message.length();
-		this.payload = message.substring(5,length);
 	}
 
 	// To String
 	public String toString()
 	{
-		return String.format("%04d", length) + (type + payload);
+		return String.format("%04d", length) + (type);
 	}
 
 	// The get functions

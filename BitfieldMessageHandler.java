@@ -7,7 +7,7 @@ public class BitfieldMessageHandler extends MessageHandler{
 	public void handleMessage(Message message){
 		BitfieldMessage bitfieldMessage = (BitfieldMessage)message;
 
-		System.out.println("BitfieldMessageHandler: "+ bitfieldMessage.toString());
+		System.out.println("BitfieldMessageHandler: "+ bitfieldMessage.getMessage());
 
 /*
 

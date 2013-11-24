@@ -76,10 +76,12 @@ public class BitfieldMessage implements Message
 		}
 
 		// Cats Strings
-		for(int i=0; i <= newList.length; i++)
+		for(int i=0; i < newList.length; i++)
 		{
 			acsiiString += newList[i];
 		} 
+
+		System.out.println("acsiiString: " +acsiiString);
 
 		try
 		{		
@@ -96,11 +98,13 @@ public class BitfieldMessage implements Message
 	//Takes a binary String and converts it to 8bit acsii.
 	private String toText(String info) throws UnsupportedEncodingException
 	{
+		System.out.println("ASDK:FHASDFASDFASDFASDf: "+ info);
 		String returnString = "";
 		for (int i = 0; i < info.length()/8; i++) {
 			int charCode = Integer.parseInt(info.substring(1+(i*8), (i+1)*8), 2);
 			returnString += new Character((char)charCode).toString();
 		}
+		System.out.println("returnString BitfieldMessage: "+ returnString);
 		return returnString;
 	}
 
@@ -111,9 +115,9 @@ public class BitfieldMessage implements Message
 	}
 
 	// The get functions
-	public String getPayLoad()
+	public String getMessage()
 	{
-		return this.payload;
+		return this.message;
 	}
 
 	public int getType()
