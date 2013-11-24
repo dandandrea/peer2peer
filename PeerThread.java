@@ -61,6 +61,7 @@ public class PeerThread extends Thread {
 
 	// Thread.run()
 	public void run() {
+
 	    // Do we already have a connection or do we need to establish a connection?
 	    // Did the listener thread construct this item or did Peer2Peer?
 
@@ -73,16 +74,21 @@ public class PeerThread extends Thread {
 			// Instantiate NonblockingConnection
 			connection = new NonblockingConnection(hostname, port);
 			
+			// set self add peerThread for the corresponding peerInfo.
+		    //TODO: test this
+		    Peer2Peer.peer2Peer.getPeerInfoList().getPeerInfo(remotePeerId).setPeerThread(this);
+
+
 			// Send handshake
 			// Stub for now
 		    System.out.println("TODO: Implement real handshake send");
 
+
+
 		    //send handshake message to the inbound peerthread and wait for handshake back.
 		    int remotePeerID = peerDoHandshake(connection);
 		    
-		    //add self to peerInfoList
-		    //TODO: test this
-		    Peer2Peer.peer2Peer.getPeerInfoList().getPeerInfo(remotePeerId).setPeerThread(this);
+
 
 		    // get pieceList
 		    List<Integer> pieceList = Peer2Peer.peer2Peer.getPeerInfoList().getPeerInfo(Peer2Peer.peer2Peer.getPeerId()).getPieceList();

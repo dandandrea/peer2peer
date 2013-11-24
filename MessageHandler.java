@@ -1,24 +1,24 @@
 public class MessageHandler{
 
 	// handle on peerInfoList to update
-	private PeerInfoList peerInfoList;
+	protected PeerInfoList peerInfoList;
+	protected int remotePeerId;
 
 
-	public MessageHandler(PeerInfoList peerInfoList){
+	public MessageHandler(PeerInfoList peerInfoList , int remotePeerId){
 		this.peerInfoList = peerInfoList;
+		this.remotePeerId = remotePeerId;
 	}
 
 	public void handleMessage(Message message){
 		if(message instanceof BitfieldMessage){
-			MessageHandler mh = new BitfieldMessageHandler(peerInfoList);
+			MessageHandler mh = new BitfieldMessageHandler(peerInfoList , remotePeerId);
 			mh.handleMessage(message);
 		}
 		else{
 			System.out.println("ERROR: handleMessage(): WHY AM I HERE");
 		}
 	}
-
-
 
 
 	public void handleMessage(ChokeMessage chokeMessage){
@@ -59,5 +59,9 @@ public class MessageHandler{
 	public void handleMessage(PieceMessage pieceMessage){
 		PieceMessageHandler mh = new PieceMessageHandler(peerInfoList);
 		mh.handleMessage(pieceMessage);
+	}
+
+	public PeerInfoList getPeerInfoList(){
+		return peerInfoList;
 	}
 }

@@ -27,8 +27,6 @@ public class BitfieldMessage implements Message
 		this.message = message.substring(5,length);
 	}
 
-
-
 	// To String
 	public String toString()
 	{
