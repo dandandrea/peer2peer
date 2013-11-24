@@ -72,7 +72,7 @@ public class PeerThread extends Thread {
 
 			// Instantiate NonblockingConnection
 			connection = new NonblockingConnection(hostname, port);
-
+			
 			// Send handshake
 			// Stub for now
 		    System.out.println("TODO: Implement real handshake send");
@@ -84,10 +84,13 @@ public class PeerThread extends Thread {
 		    //TODO: test this
 		    Peer2Peer.peer2Peer.getPeerInfoList().getPeerInfo(remotePeerId).setPeerThread(this);
 
-		    //TODO: only send if you actually need to...
+		    // get pieceList
 		    List<Integer> pieceList = Peer2Peer.peer2Peer.getPeerInfoList().getPeerInfo(Peer2Peer.peer2Peer.getPeerId()).getPieceList();
+		    
+		    // If pieceList isnt empty, send a bitfieldMessage.
 		    if(pieceList.size() >0){
-				connection.sendData(new BitfieldMessage().toString());	
+		    	connection.sendData(new BitfieldMessage().toString());	
+				//connection.sendData(new BitfieldMessage(pieceList).toString());	
 			}
 			else{
 				System.out.println(Peer2Peer.peer2Peer.getPeerId()+" did not send BitfieldMessage");
@@ -106,14 +109,12 @@ public class PeerThread extends Thread {
 			List<Integer> pieceList = Peer2Peer.peer2Peer.getPeerInfoList().getPeerInfo(Peer2Peer.peer2Peer.getPeerId()).getPieceList();
 		    if(pieceList.size() >0){
 				connection.sendData(new BitfieldMessage().toString());	
+				//connection.sendData(new BitfieldMessage(pieceList).toString());
 			}
 			else{
 				System.out.println(Peer2Peer.peer2Peer.getPeerId()+" did not send BitfieldMessage");
 			}
 		}
-
-		// We'll use this for now to track the order in which transmissions arrive
-		int transmissionNumber = 0;
 
 		// This is the main loop of the thread
 		while (true) {
@@ -161,7 +162,7 @@ public class PeerThread extends Thread {
 		// Get data from the NBC buffer
 		String fullMessageString = connection.getData();
 
-		System.out.println("populateInboundMessageQueue(): fullMessageString: "+fullMessageString);
+		System.out.println(Peer2Peer.peer2Peer.getPeerInfoList().getPeerInfo(remotePeerId).getPeerId()+": fullMessageString: "+fullMessageString);
 
 		if(fullMessageString != null){
 			// Break apart fullMessageString into individual messageStrings
@@ -189,12 +190,12 @@ public class PeerThread extends Thread {
 
 	private int peerDoHandshake(NonblockingConnection connection) {
 	    //send a handshake message
-	    connection.sendData(new HandshakeMessage(Peer2Peer.peer2Peer.getPeerId()).toString());
-
 		//wait for a handshake back.
 		while(true) {
-		    // Get data
+	    	//send handshake again to solve race condition.
+			connection.sendData(new HandshakeMessage(Peer2Peer.peer2Peer.getPeerId()).toString());
 
+		    // Get data
 		    String remotePeerIdCandidate = connection.getData();
 
 	        // Check if the data is a valid remote peer ID

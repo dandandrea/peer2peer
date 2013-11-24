@@ -17,7 +17,7 @@ public class HaveMessage implements Message
 	// Deserialize Constructor
 	public HaveMessage(String message)
 	{
-		if ( Integer.parseInt(message.substring(5,5)) == type)
+		if ( Integer.parseInt(message.substring(5,6)) == type)
 		{
 			System.out.println(" ERROR: Invalid Message Type ");
 		}

@@ -1,7 +1,7 @@
 import java.util.*;
 import java.io.*;
 
-public class HandshakeMessage {
+public class HandshakeMessage implements Message{
 	private String message;
 
 	public HandshakeMessage(int peerID){	

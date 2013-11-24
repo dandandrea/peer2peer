@@ -20,10 +20,10 @@ public class MessageHandler{
 
 
 
-/*
+
 	public void handleMessage(ChokeMessage chokeMessage){
 		ChokeMessageHandler mh = new ChokeMessageHandler(peerInfoList);
-		m.handleMessage(chokeMessage);
+		mh.handleMessage(chokeMessage);
 	}
 
 	public void handleMessage(UnchokeMessage unchokeMessage){
@@ -32,20 +32,25 @@ public class MessageHandler{
 	}
 
 	public void handleMessage(InterestedMessage interestedMessage){
-		InterstedMessageHandler mh = new InterestedMessageHandler(peerInfoList);
+		InterestedMessageHandler mh = new InterestedMessageHandler(peerInfoList);
 		mh.handleMessage(interestedMessage);
 	}
 
 	public void handleMessage(NotInterestedMessage notInterestedMessage){
-		NotInterestedMessageHandler mh = new NotInteretedMessageHandler(peerInfoList);
+		NotInterestedMessageHandler mh = new NotInterestedMessageHandler(peerInfoList);
 		mh.handleMessage(notInterestedMessage);
 	}
-*/
+
+	public void handleMessage(HaveMessage haveMessage){
+		HaveMessageHandler mh = new HaveMessageHandler(peerInfoList);
+		mh.handleMessage(haveMessage);
+	}
+
 	public void handleMessage(BitfieldMessage bitfieldMessage){
 		BitfieldMessageHandler mh = new BitfieldMessageHandler(peerInfoList);
 		mh.handleMessage(bitfieldMessage);
 	}
-/*
+
 	public void handleMessage(RequestMessage requestMessage){
 		RequestMessageHandler mh = new RequestMessageHandler(peerInfoList);
 		mh.handleMessage(requestMessage);
@@ -55,7 +60,4 @@ public class MessageHandler{
 		PieceMessageHandler mh = new PieceMessageHandler(peerInfoList);
 		mh.handleMessage(pieceMessage);
 	}
-*/
-
-
 }

@@ -24,7 +24,7 @@ public class BitfieldMessage implements Message
 			System.out.println(" ERROR: Invalid Message Type ");
 		}
 		this.length = message.length();
-		this.message = message.substring(6,length);
+		this.message = message.substring(5,length);
 	}
 
 	// To String
