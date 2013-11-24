@@ -290,7 +290,7 @@ public class PeerThread extends Thread {
 			// Is this a handshake message? If so then just throw it out
 			if (inputString.substring(0, 5).equals("HELLO") == true) {
 			    System.out.println("Discarding handshake message");
-				inputString = inputString.substring(5, inputString.length());
+				inputString = inputString.substring(35, inputString.length());
 				continue;
 			}
 
