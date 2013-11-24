@@ -22,19 +22,19 @@ public class PieceMessage implements Message
 	// Deserialize COnstructor
 	public PieceMessage(String message)
 	{
-		if ( Integer.parseInt(message.substring(5,5)) == type)
+		if ( Integer.parseInt(message.substring(4,5)) == type)
 		{
 			System.out.println(" ERROR: Invalid Message Type ");
 		}
 		this.length = message.length();
-		this.pieceNumber = Integer.parseInt(message.substring(6,9));
+		this.pieceNumber = Integer.parseInt(message.substring(5,9));
 		this.piece = message.substring(9,length);
 	}
 
 	// Serialize
 	public String toString()
 	{
-		return  length + (type + String.format("%04d",Integer.toString(pieceNumber)) + piece);
+		return  String.format("%04d", length) + (type + String.format("%04d",Integer.toString(pieceNumber)) + piece);
 	}
 
 	// The get functions
