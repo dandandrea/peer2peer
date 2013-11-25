@@ -9,23 +9,22 @@ public class BitfieldMessageHandler extends MessageHandler{
 
 		System.out.println("BitfieldMessageHandler: "+ bitfieldMessage.getMessage());
 
-/*
+		boolean interested = false;
 
-		for each piece in bitfield.pieceList
-			getPeerInfoList().getPeerInfo(remotePeerId).getPieceList().add(piece)
-
-
-
-		System.out.println("adding 1 to remotePeer's pieceList: "+getPeerInfoList().getPeerInfo(remotePeerId).getPieceList().add(1));
-		System.out.println(getPeerInfoList().getPeerInfo(remotePeerId).getPieceList().get(0));
-
-*/
-		//Do work to the bitfield of the peer you are connected to. this might need to be a syncrinized.
+		for (int piece :  bitfield.pieceList){
+			if(getPeerInfoList().getPeerInfo(remotePeerId).getPieceList().contains(piece)  == false){
+				getPeerInfoList().getPeerInfo(remotePeerId).getPieceList().add(piece);
+			}
+			if(interested == false && getPeerInfoList().getPeerInfo(Peer2Peer.peer2Peer.getPeerId()).getPieceList().contains(piece) == false){
+				interested = true;
+			}
+		}
 
 		//if remotePeer has pieces this peer does not have
+		if(interested){
 			peerInfoList.getPeerInfo(remotePeerId).getPeerThread().sendMessage(new InterestedMessage());
-			//thisPeer.sendMessage(new InterestedMessage());
-		//else
-			//thisPeer.sendMessage(new NotInterestedMessage());
+		}
+		else{
+			peerInfoList.getPeerInfo(remotePeerId).getPeerThread().sendMessage(new NotInterestedMessage());
 	}
 }

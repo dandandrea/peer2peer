@@ -12,6 +12,7 @@ public class InterestedMessageHandler extends MessageHandler{
 
 		// Add the peer that sent this to you to a interested list if it is not all ready there.
 		// this might need to be sync'ed.
+		
 
 	}
 }

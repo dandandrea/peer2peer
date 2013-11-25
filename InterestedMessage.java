@@ -5,13 +5,11 @@ public class InterestedMessage implements Message
 {
 	private final int type = 2;
 	private int length;
-	private String payload;
 
 	// Constructor for Interested_M
 	public InterestedMessage()
 	{	
-		this.payload = " SCUMBAG I am INTERESTED!! ";
-		this.length = 5 + payload.length();
+		this.length = 5;
 	}
 
 	// Deserialize Constructor
@@ -22,13 +20,12 @@ public class InterestedMessage implements Message
 			System.out.println(" ERROR: Invalid Message Type ");
 		}
 		this.length = message.length();
-		this.payload = message.substring(5,length);
 	}
 
 	// To String
 	public String toString()
 	{
-		return String.format("%04d", length) + (type + payload);
+		return String.format("%04d", length) + (type);
 	}
 
 	// The get functions

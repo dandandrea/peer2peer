@@ -24,7 +24,7 @@ public class BitfieldMessage implements Message
 			System.out.println(" ERROR: Invalid Message Type ");
 		}
 		
-		byte[] inBytes = message.getBytes();
+		byte[] inBytes = message.substring(5,message.length()).getBytes();
 		this.message = getBits(inBytes);
 		
 		this.length = message.length();
@@ -36,19 +36,21 @@ public class BitfieldMessage implements Message
 	{
 		// Go through each bit with a mask
 		StringBuilder builder = new StringBuilder();
-		for (int i=0; i<inByte.length; i++)
-		{
+	
 			for ( int j = 0; j < 8; j++ )
 			{
+
+				System.out.println(inByte);
+
 				// Shift each bit by 1 starting at zero shift
-				byte tmp = (byte) ( inByte[i] >> j );
+				byte tmp = (byte) ( inByte >> j );
 
 				// Check byte with mask 00000001 for LSB
 				int expect1 = tmp & 0x01;
 
 				builder.append(expect1);
 			}
-		}
+	
 		return ( builder.reverse().toString() );
 	}
 
