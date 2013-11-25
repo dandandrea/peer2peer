@@ -10,7 +10,7 @@ public class PeerInfo {
     private int hasFile;
     private PeerThread peerThread;
     private List<Integer> pieceList;
-
+	private boolean isInterested;
 
     // Constructor
     public PeerInfo(int peerId, String hostname, int port, int hasFile) {
@@ -25,6 +25,16 @@ public class PeerInfo {
     public PeerInfo() {
         pieceList = new ArrayList<Integer>();     
     }
+
+	// Getter for isInterested
+	public boolean getIsInterested() {
+	    return isInterested;
+	}
+
+	// Setter for isInterested
+	public void setIsInterested(boolean isInterested) {
+	    this.isInterested = isInterested;
+	}
 
     //get peer thread
     public PeerThread getPeerThread(){
