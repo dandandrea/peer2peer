@@ -15,7 +15,7 @@ public class ChokeMessage implements Message
 	// Deserialize Constructor
 	public ChokeMessage(String message)
 	{
-		if ( Integer.parseInt(message.substring(4,5)) == type)
+		if ( Integer.parseInt(message.substring(4,5)) != type)
 		{
 			System.out.println(" ERROR: Invalid Message Type ");
 		}
