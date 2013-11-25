@@ -25,6 +25,7 @@ public class BitfieldMessageHandler extends MessageHandler{
 			peerInfoList.getPeerInfo(remotePeerId).getPeerThread().sendMessage(new InterestedMessage());
 		}
 		else{
-			peerInfoList.getPeerInfo(remotePeerId).getPeerThread().sendMessage(new NotInterestedMessage());
+				peerInfoList.getPeerInfo(remotePeerId).getPeerThread().sendMessage(new NotInterestedMessage());
+		}
 	}
 }
