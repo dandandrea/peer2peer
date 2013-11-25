@@ -17,7 +17,7 @@ public class InterestedMessage implements Message
 	// Deserialize Constructor
 	public InterestedMessage(String message)
 	{
-		if ( Integer.parseInt(message.substring(4,5)) == type)
+		if ( Integer.parseInt(message.substring(4,5)) != type)
 		{
 			System.out.println(" ERROR: Invalid Message Type ");
 		}
