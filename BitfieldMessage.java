@@ -47,6 +47,7 @@ public class BitfieldMessage implements Message
 	// Converts from ascii string to bit strings
 	private String deserializeConvert(String message)
 	{
+		// gets bits of individual character of string
 		String bitString = "";
 		for (int i = 0; i < message.length(); i++) 
 		{
@@ -75,11 +76,10 @@ public class BitfieldMessage implements Message
 	}
 
 	// Converts pieceList into bit string
-	private String convertList(List pieceList)
+	private String convertList(List<Integer> pieceList)
 	{
-
-
-		String[] newList = new String[pieceList.size() + (8 - (pieceList.size() % 8))];
+		int mod = pieceList.size() % 8;
+		String[] newList = new String[ pieceList.size() + ((mod == 0) ? 0:(8-mod)) ];
 		String asciiString = "";
 		
 		// Initialize
@@ -101,6 +101,7 @@ public class BitfieldMessage implements Message
 			asciiString += newList[i];
 		} 
 		
+		// Changes numbers of string object into ascii of string object
 		try
 		{		
 			asciiString =  toText(asciiString);
@@ -118,9 +119,10 @@ public class BitfieldMessage implements Message
 	{
 		String returnString = "";
 		for (int i = 0; i < info.length()/8; i++) {
-			int charCode = Integer.parseInt(info.substring(1+(i*8), (i+1)*8), 2);
+			int charCode = Integer.parseInt(info.substring(0+(i*8), (i+1)*8), 2);
 			returnString += new Character((char)charCode).toString();
 		}
+		
 		return returnString;
 	}
 

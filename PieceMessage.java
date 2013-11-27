@@ -10,12 +10,21 @@ public class PieceMessage implements Message
 	private String piece;
 	private int length;
 	private final int type = 7;
+	private String fileName;
+	private int pieceSize;
+	private int fileSize;
 
-	// Constructor Deserialize
-	public PieceMessage(int pieceNumber, String piece)
+	// Constructor Serialize
+
+	// ********************TODO Grab piece from file in message*****************//
+	public PieceMessage(int pieceNumber, int fileSize, int pieceSize, String fileName)
 	{
 		this.pieceNumber = pieceNumber;
-		this.piece = piece;
+		this.fileSize = fileSize;
+		this.pieceSize = pieceSize;
+		this.fileName = fileName;
+		this.piece = grabPiece();
+
 		this.length = 5 + Integer.toString(pieceNumber).length() + piece.length();
 	}
 
@@ -35,6 +44,14 @@ public class PieceMessage implements Message
 	public String toString()
 	{
 		return  String.format("%04d", length) + (type + String.format("%04d",Integer.toString(pieceNumber)) + piece);
+	}
+
+
+	// Grab the piece of File
+	private String grabPiece()
+	{
+		System.out.println(" GrabPiece() method " + this.fileName);
+		return Segmented.getPiece(this.fileName, this.pieceSize, this.pieceNumber, this.fileSize); 
 	}
 
 	// The get functions
