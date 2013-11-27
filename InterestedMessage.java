@@ -9,7 +9,6 @@ public class InterestedMessage implements Message
 	public InterestedMessage(String message)
 	{
 		if ( Integer.parseInt(message.substring(4,5)) != 2)
-		{
 			System.out.println(" ERROR: Invalid Message Type ");
 		}
 	}

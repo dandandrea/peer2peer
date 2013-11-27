@@ -15,7 +15,6 @@ public class UnchokeMessage implements Message
 	public UnchokeMessage(String message)
 	{
 		if ( Integer.parseInt(message.substring(4,5)) != 1)
-		{
 			System.out.println(" ERROR: Invalid Message Type ");
 		}
 	}
