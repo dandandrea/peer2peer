@@ -5,16 +5,14 @@ public class BitfieldMessage implements Message
 {
 	// Properties of Bitfield	
 	private List<Integer> pieceList;
-	private int length;
 	private final int type = 5;
 	private String message;
 
 	// Constructor for Bitfield_M
-	public BitfieldMessage(List pieceList)
+	public BitfieldMessage(List<Integer> pieceList)
 	{
 		this.pieceList = pieceList;
 		this.message = convertList(pieceList);
-		this.length = 5 + message.length();
 	}
 
 	// Deserialize Constructor
@@ -24,9 +22,8 @@ public class BitfieldMessage implements Message
 		{
 			System.out.println(" ERROR: Invalid Message Type ");
 		}
-		
 		this.message = deserializeConvert(message.substring(5,message.length()));
-		this.length = 5 + this.message.length();
+		
 		restructurePieceList();
 	}
 
@@ -76,7 +73,7 @@ public class BitfieldMessage implements Message
 	}
 
 	// Converts pieceList into bit string
-	private String convertList(List pieceList)
+	private String convertList(List<Integer> pieceList)
 	{
 
 
@@ -130,7 +127,8 @@ public class BitfieldMessage implements Message
 	// To String
 	public String toString()
 	{
-		return String.format("%04d", length) + (type + message);
+		System.out.println("I have this message:  " + message + " with length: "+message.length());
+		return String.format("%04d", message.length() + 4) + (type + message);
 	}
 
 	// The get functions
@@ -148,11 +146,5 @@ public class BitfieldMessage implements Message
 	public int getType()
 	{
 		return this.type;
-	}
-
-	public int getLength()
-	{
-		return this.length;
-	}
-	
+	}	
 }

@@ -1,5 +1,6 @@
 import java.io.*;
 import java.util.concurrent.*;
+import java.util.concurrent.locks.*;
 import java.util.*;
 import java.lang.*;
 
@@ -15,6 +16,11 @@ public class Peer2Peer {
     private String fileName;
     private int fileSize;
     private int pieceSize;
+
+    //lock for doNotHaveList
+    private final ReentrantLock lock = new ReentrantLock();
+
+    private List<Integer> doNotHaveList;
 
     // PeerInfoList
     private PeerInfoList peerInfoList;
@@ -228,15 +234,18 @@ public class Peer2Peer {
 	// Creates Has Piece List upon initial start-up
 	private void populatePieceList()
 	{
+        doNotHaveList = new ArrayList<Integer>();
 		int size = (int)Math.ceil(fileSize/pieceSize);
-		if (peerInfoList.getPeerInfo(peerId).getHasFile() == 1)
-		{
-			for (int i=1; i < size; i++)
-			{
-				peerInfoList.getPeerInfo(peerId).getPieceList().add(i);
-			}
+		for (int i=1; i < size; i++){
+            if (peerInfoList.getPeerInfo(peerId).getHasFile() == 1){
+			    peerInfoList.getPeerInfo(peerId).getPieceList().add(i);
+            }
+            else{
+                doNotHaveList.add(i);
+            }
 		}
 	}
+
 
     // Validate command-line arguments
     // Return peer ID if valid
@@ -282,6 +291,53 @@ public class Peer2Peer {
 		}
     }
 
+    // find a piece that I'm interested in, and check that piece out.
+    // returns the piece number
+    public  int checkoutPiece(int remotePeer){
+        // If the list is empty then there is no piece number to return.
+        if(doNotHaveList.size() == 0){
+            return -1;
+        }
+        else{
+            // temp list for work later
+            List<Integer> canidateList = new ArrayList<Integer>();
+
+            // check which pieces i need from remotePeer and add them to the canidateList
+            for(int pieceNumber: peerInfoList.getPeerInfo(remotePeer).getPieceList()){
+
+                //if remotePeer has a piece and This peer does not.
+                if(doNotHaveList.contains(pieceNumber) == true){
+                    
+                    //add that piece to the canidateList
+                    canidateList.add(pieceNumber);
+
+                }
+            }
+
+            // this object can produce a random number.
+            Random rand = new Random();
+
+            // start at 0 every random number generated.
+            int min = 0;
+
+            // gets the upper bound for the random number range.
+            int max = canidateList.size();
+
+            //get the index between 0 and list.size. 
+            int randomNumberIndex = rand.nextInt((max - min) + 1) + min;
+
+            //remove that index from the list
+            int returnRequestNumber = doNotHaveList.get(randomNumberIndex);
+
+            // finalize the checkout by removing it from the doNotHaveList
+            doNotHaveList.remove(doNotHaveList.indexOf(returnRequestNumber));
+
+            // return the pieceNumber that is preped for checkout.
+            return returnRequestNumber;
+        }
+    }
+
+
 	// Protected peerInfoList getter for use by PeerThreads
 	protected PeerInfoList getPeerInfoList() {
 	    return peerInfoList;
@@ -291,6 +347,14 @@ public class Peer2Peer {
 	protected int getPeerId() {
 	    return peerId;
 	}
+
+    public List<Integer> getDoNotHaveList(){
+        return doNotHaveList;
+    }
+
+    public ReentrantLock getLock(){
+        return lock;
+    }
 
 	// Main entry point for running the peer2peer application from the command-line
     public static void main(String[] args) throws IOException, InterruptedException, ExecutionException, Peer2PeerException {
@@ -308,10 +372,26 @@ public class Peer2Peer {
 
 		// Start PeerThreads
 		peer2Peer.startPeerThreads();
+
+
+        //
+
+
+        //TODO: make this work as intended
+        for(PeerInfo peerInfo: peer2Peer.peerInfoList.getPeerInfoList()){
+
+            if(peerInfo.getPeerId() != peer2Peer.peerId){
+                while(peerInfo.getPeerThread()==null){
+                    peer2Peer.sleep(SLEEP_MILLISECONDS);
+                }
+                System.out.println("Sending UnchokeMessage to: " + peerInfo.getPeerId());
+                peerInfo.getPeerThread().sendMessage(new UnchokeMessage());
+            }
+        }
 	}
 
     // Method to clean-up sleeps (don't have to ugly our code with the try/catch)
-    private void sleep(int duration) {
+    public void sleep(int duration) {
         try {
             Thread.sleep(duration);
         }
