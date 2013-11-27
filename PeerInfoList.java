@@ -54,6 +54,9 @@ public class PeerInfoList {
 		for (int i = 0; i < peerInfoList.size(); i++) {
 		    // Is this peer interested? If so then add it to the list
 			if (peerInfoList.get(i).getIsInterested() == true) {
+
+				System.out.println("This peer in interested: "+peerInfoList.get(i).getPeerId());
+
 			    // Add it
 				interestedList.add(peerInfoList.get(i).getPeerId());
 			}

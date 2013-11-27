@@ -11,7 +11,8 @@ public class BitfieldMessageHandler extends MessageHandler{
 
 		boolean interested = false;
 
-		for (int piece :  bitfield.pieceList){
+		for (int piece :  bitfieldMessage.getPieceList()){
+			System.out.println("bfmh: piece from "+ remotePeerId+ ": is : "+ piece);
 			if(getPeerInfoList().getPeerInfo(remotePeerId).getPieceList().contains(piece)  == false){
 				getPeerInfoList().getPeerInfo(remotePeerId).getPieceList().add(piece);
 			}
@@ -25,7 +26,7 @@ public class BitfieldMessageHandler extends MessageHandler{
 			peerInfoList.getPeerInfo(remotePeerId).getPeerThread().sendMessage(new InterestedMessage());
 		}
 		else{
-				peerInfoList.getPeerInfo(remotePeerId).getPeerThread().sendMessage(new NotInterestedMessage());
+			peerInfoList.getPeerInfo(remotePeerId).getPeerThread().sendMessage(new NotInterestedMessage());
 		}
 	}
 }

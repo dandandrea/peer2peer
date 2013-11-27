@@ -21,6 +21,7 @@ public class PeerInfo {
         this.port = port;
         this.hasFile = hasFile;
         pieceList = new ArrayList<Integer>(); 
+        isInterested = false;
         amChokedByThem = true;
         isChokedByMe = true;       
     }
@@ -28,6 +29,7 @@ public class PeerInfo {
     // Default constructor
     public PeerInfo() {
         pieceList = new ArrayList<Integer>();
+        isInterested = false;
         amChokedByThem = true;
         isChokedByMe = true;     
     }

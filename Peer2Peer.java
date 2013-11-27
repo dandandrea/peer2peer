@@ -235,8 +235,8 @@ public class Peer2Peer {
 	private void populatePieceList()
 	{
         doNotHaveList = new ArrayList<Integer>();
-		int size = (int)Math.ceil(fileSize/pieceSize);
-		for (int i=1; i < size; i++){
+		int size = (int)Math.ceil((double)fileSize/(double)pieceSize);
+		for (int i=0; i < size; i++){
             if (peerInfoList.getPeerInfo(peerId).getHasFile() == 1){
 			    peerInfoList.getPeerInfo(peerId).getPieceList().add(i);
             }
@@ -321,7 +321,7 @@ public class Peer2Peer {
             int min = 0;
 
             // gets the upper bound for the random number range.
-            int max = canidateList.size();
+            int max = canidateList.size()-1;
 
             //get the index between 0 and list.size. 
             int randomNumberIndex = rand.nextInt((max - min) + 1) + min;
@@ -356,6 +356,80 @@ public class Peer2Peer {
         return lock;
     }
 
+    public int getNumberOfPreferredNeighbors(){
+        return numberOfPreferredNeighbors;
+    }
+
+    public int getUnchokingInterval(){
+        return unchokingInterval;
+    }
+
+
+    //unchoke some neighbors
+    private void unchokePreferredNeighbors(){
+
+        //get the of interested peers which are canidates to be unchoked
+        List<Integer> toBeUnchokedList = peer2Peer.getPeerInfoList().getInterestedList();
+
+        // while i have too make ppl to unchoke...remove 1
+        while(toBeUnchokedList.size() > peer2Peer.getNumberOfPreferredNeighbors()){
+
+            // this object can produce a random number.
+            Random rand = new Random();
+
+            // start at 0 every random number generated.
+            int min = 0;
+
+            // gets the upper bound for the random number range.
+            int max = toBeUnchokedList.size()-1;
+
+            //get the index between 0 and max. 
+            int randomNumberIndex = rand.nextInt((max - min) + 1) + min;
+
+            System.out.println("randomNumberIndex:  "+randomNumberIndex);
+            
+            //remove that index from the list
+            toBeUnchokedList.remove(randomNumberIndex);
+        }
+
+        //process unchokedList wrt all peers
+        for(int i = 0 ; i < getPeerInfoList().getSize() ; i++){
+
+            PeerInfo peerInfo = getPeerInfoList().getPeerInfoByIndex(i);
+
+            System.out.println("I'm considering unchoking: "+peerInfo.getPeerId());
+
+            //do i need to unchoke?
+            if(toBeUnchokedList.contains(peerInfo.getPeerId()) == true){
+
+                System.out.println(peerInfo.getPeerId() + " got lucky");
+
+                // are they currently choked
+                if(peerInfo.getIsChokedByMe() == true){
+                    //send them a unchoked message
+                    System.out.println("Unchoking: "+ peerInfo.getPeerId());
+                    peerInfo.getPeerThread().sendMessage(new UnchokeMessage());
+
+                    //mark them as unchoked
+                    peerInfo.setIsChokedByMe(false);
+                }
+            }
+            else{
+                System.out.println(peerInfo.getPeerId() + " didn't get lucky");
+                // are they currently unchoked
+                if(peerInfo.getIsChokedByMe() == false){
+                    System.out.println("Choking: "+ peerInfo.getPeerId());
+
+                    //send them a choked message
+                    peerInfo.getPeerThread().sendMessage(new ChokeMessage());
+
+                    //mark them as choked
+                    peerInfo.setIsChokedByMe(true);
+                }
+            }
+        }
+    }
+
 	// Main entry point for running the peer2peer application from the command-line
     public static void main(String[] args) throws IOException, InterruptedException, ExecutionException, Peer2PeerException {
 		// Get the peer ID from the command-line arguments
@@ -373,25 +447,16 @@ public class Peer2Peer {
 		// Start PeerThreads
 		peer2Peer.startPeerThreads();
 
-
-        //
-
-
-        //TODO: make this work as intended
-        for(PeerInfo peerInfo: peer2Peer.peerInfoList.getPeerInfoList()){
-
-            if(peerInfo.getPeerId() != peer2Peer.peerId){
-                while(peerInfo.getPeerThread()==null){
-                    peer2Peer.sleep(SLEEP_MILLISECONDS);
-                }
-                System.out.println("Sending UnchokeMessage to: " + peerInfo.getPeerId());
-                peerInfo.getPeerThread().sendMessage(new UnchokeMessage());
-            }
+        //TODO: while true needs to be if anyone needs a piece
+        while(true){
+            System.out.println("About to call unchokePreferredNeighbors()");
+            peer2Peer.unchokePreferredNeighbors();
+            peer2Peer.sleep(peer2Peer.getUnchokingInterval() * 1000);
         }
 	}
 
     // Method to clean-up sleeps (don't have to ugly our code with the try/catch)
-    public void sleep(int duration) {
+    public static void sleep(int duration) {
         try {
             Thread.sleep(duration);
         }

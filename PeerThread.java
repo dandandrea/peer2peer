@@ -20,6 +20,8 @@ public class PeerThread extends Thread {
 
 	private MessageHandler messageHandler;
 
+	private int requestedPiece;
+
     // PeerThread constructor
     public PeerThread(int remotePeerId, int sleepMilliseconds) throws IOException {
         // Set the remote peer ID
@@ -36,6 +38,8 @@ public class PeerThread extends Thread {
 
 		//set messageHandler
 		messageHandler =  new MessageHandler(Peer2Peer.peer2Peer.getPeerInfoList() , remotePeerId);
+
+		requestedPiece = -1;
     }
 
 	// PeerThread constructor
@@ -57,6 +61,8 @@ public class PeerThread extends Thread {
 
 		//set messageHandler
 		messageHandler =  new MessageHandler(Peer2Peer.peer2Peer.getPeerInfoList() , remotePeerId);
+
+		requestedPiece = -1;
 	}
 
 	// Thread.run()
@@ -163,6 +169,19 @@ public class PeerThread extends Thread {
 	public void sendMessage(Message message){
 		outboundMessageQueue.add(message);
 	}
+
+	public Peer2Peer getPeer2Peer(){
+		return Peer2Peer.peer2Peer;
+	}
+
+	public int getRequestedPiece(){
+		return requestedPiece;
+	}
+
+	public void setRequestedPiece(int requestedPiece){
+		this.requestedPiece = requestedPiece;
+	}
+
 
 	// Populate the message queue from inbound data.
 	private void populateInboundMessageQueue() throws Peer2PeerException {

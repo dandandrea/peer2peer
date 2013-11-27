@@ -13,6 +13,7 @@ public class BitfieldMessage implements Message
 	{
 		this.pieceList = pieceList;
 		this.message = convertList(pieceList);
+		System.out.println(pieceList.toString());
 	}
 
 	// Deserialize Constructor
@@ -90,7 +91,7 @@ public class BitfieldMessage implements Message
 		for (int i= 0; i < pieceList.size(); i++)
 		{
 			int j = (int)pieceList.get(i);
-			newList[j-1] = "1";
+			newList[j] = "1";
 		}
 
 		// Cats Strings
@@ -130,7 +131,7 @@ public class BitfieldMessage implements Message
 	public String toString()
 	{
 		System.out.println("I have this message:  " + message + " with length: "+message.length());
-		return String.format("%04d", message.length() + 4) + (type + message);
+		return String.format("%04d", message.length() + 5) + (type + message);
 	}
 
 	// The get functions
