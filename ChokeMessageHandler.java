@@ -8,7 +8,7 @@ public class ChokeMessageHandler extends MessageHandler{
 		ChokeMessage chokeMessage = (ChokeMessage)message;
 
 		System.out.println("ChokeMessageHandler: "+ chokeMessage.toString());
-
+		System.out.println("ChokeMessageHandler: choked by "+remotePeerId+" : "+ chokeMessage.toString());
 		//set that i was choked by them
 		peerInfoList.getPeerInfo(remotePeerId).setAmChokedBythem(true);
 

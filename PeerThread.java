@@ -189,9 +189,10 @@ public class PeerThread extends Thread {
 		// Get data from the NBC buffer
 		String fullMessageString = connection.getData();
 
-		System.out.println(Peer2Peer.peer2Peer.getPeerInfoList().getPeerInfo(remotePeerId).getPeerId()+": fullMessageString: "+fullMessageString);
+		
 
 		if(fullMessageString != null){
+			System.out.println(Peer2Peer.peer2Peer.getPeerInfoList().getPeerInfo(remotePeerId).getPeerId()+": fullMessageString: "+fullMessageString);
 			// Break apart fullMessageString into individual messageStrings
 			List<String> dechunkedMessageList = dechunkin(fullMessageString);
 		
@@ -285,12 +286,8 @@ public class PeerThread extends Thread {
 				// Return the remote peer ID
 				return remotePeerId;
 			}
-
-			// Didn't get the remote peer ID yet, sleep and try again
-			//if (i != 9) {
-			    System.out.println("Sleeping and trying to get handshake again");
-			    sleep(sleepMilliseconds);
-			//}
+		    System.out.println("Sleeping and trying to get handshake again");
+		    sleep(sleepMilliseconds);
 		}
 	}
 
@@ -306,19 +303,12 @@ public class PeerThread extends Thread {
 		// Loop and do dechunkin'
 		while (true) {
 	        // Gotta say "dechunkin'" because "dechunkin'"!
-		    System.out.println("Trying to dechunkin' another message");
+		    //System.out.println("Trying to dechunkin' another message");
 
 		    // Are there no more messages?
 			if (inputString == null || inputString.length() == 0) {
-			    System.out.println("No more messages to dechunkin'");
+			    //System.out.println("No more messages to dechunkin'");
 			    break;
-			}
-
-			// Is this a handshake message? If so then just throw it out
-			if (inputString.substring(0, 5).equals("HELLO") == true) {
-			    System.out.println("Discarding handshake message");
-				inputString = inputString.substring(35, inputString.length());
-				continue;
 			}
 
             // Do we have a message whose length is greater than 0 but less than 6?
@@ -327,6 +317,13 @@ public class PeerThread extends Thread {
 			if (inputString.length() < 5) {
 			    System.out.println("ERROR: Got message with invalid format: " + inputString);
 				break;
+			}
+
+			// Is this a handshake message? If so then just throw it out
+			if (inputString.substring(0, 5).equals("HELLO") == true) {
+			    //System.out.println("Discarding handshake message");
+				inputString = inputString.substring(35, inputString.length());
+				continue;
 			}
 
 			// If we made it here then we have a message whose length is at least 6
@@ -343,7 +340,7 @@ public class PeerThread extends Thread {
 				System.out.println("ERROR: Message has invalid format, got bad length header [string is: " + inputString + "] [length is: " + inputString.length() + "]: " + e.getMessage());
 				break;
 			}
-			System.out.println("Got message with length of " + messageLength);
+			//System.out.println("Got message with length of " + messageLength);
 
 			// Does the indicated length of the message exceed
 			// the actual length of the remaining message?
@@ -354,7 +351,7 @@ public class PeerThread extends Thread {
 
 			// We can extract the message now that we have the length
 			String extractedMessage = inputString.substring(0, messageLength);
-			System.out.println("Extracted a message: " + extractedMessage);
+			//System.out.println("Extracted a message: " + extractedMessage);
 
 			// Add the extracted message to the message string list
 			messageStringList.add(extractedMessage);

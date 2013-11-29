@@ -37,7 +37,7 @@ public class BitfieldMessage implements Message
 		{
 			if( this.message.charAt(i) == '1')
 			{
-				pieceList.add(i+1);
+				pieceList.add(i);
 			}
 		}
 	}

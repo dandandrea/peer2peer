@@ -10,7 +10,7 @@ public class MessageFactory{
 		int type=-1;
 		//parse the type from the message
 		try{
-			System.out.println("MessageFactory: The substring is: " + messageString.substring(4,5));
+			//System.out.println("MessageFactory: The substring is: " + messageString.substring(4,5));
 			type = Integer.parseInt(messageString.substring(4,5));
 		}
 		catch(Exception e){

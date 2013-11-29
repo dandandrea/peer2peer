@@ -52,16 +52,20 @@ public class PeerInfoList {
 
 		// Add the interested peers
 		for (int i = 0; i < peerInfoList.size(); i++) {
-		    // Is this peer interested? If so then add it to the list
-			if (peerInfoList.get(i).getIsInterested() == true) {
+			PeerInfo peer = peerInfoList.get(i);
 
-				System.out.println("This peer in interested: "+peerInfoList.get(i).getPeerId());
+			System.out.println(peer.getPeerId()+": interested: "+peer.getIsInterested());
+		    // Is this peer interested? If so then add it to the list
+			if (peer.getIsInterested() == true) {
+
+				//System.out.println("This peer is interested: "+peerInfoList.get(i).getPeerId());
 
 			    // Add it
-				interestedList.add(peerInfoList.get(i).getPeerId());
+				interestedList.add(peer.getPeerId());
 			}
 		}
 
+		System.out.println("Peers that are interested in me are: "+ interestedList.toString());
 		// Return the interested list
 		return interestedList;
 	}

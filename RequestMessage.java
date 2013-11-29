@@ -3,15 +3,15 @@ import java.io.*;
 
 public class RequestMessage implements Message
 {
-	private String payload;
+	private int payload;
 	private int length;
 	private final int type = 6;
 
 	// COnstructor for Request_M
 	public RequestMessage(int wantedPiece)
 	{	
-		this.payload = Integer.toString(wantedPiece);
-		this.length = 5 + payload.length();
+		this.payload = wantedPiece;
+		this.length = 5 + Integer.toString(payload).length();
 	}
 	
 	// Deserialize Constructor
@@ -22,13 +22,14 @@ public class RequestMessage implements Message
 			System.out.println(" ERROR: Invalid Message Type ");
 		}
 		this.length = message.length();
-		this.payload = message.substring(5,length);
+		this.payload = Integer.parseInt(message.substring(5,length));
 	}
 
 	// To String
 	public String toString()
-	{
-		return String.format("%04d", length) + (type + payload);
+	{	
+		System.out.println("About to send requestMessage: " +String.format("%04d", length) + (type + payload));
+		return String.format("%04d", length) + (type) + (payload);
 	}
 
 	// The get functions
@@ -42,7 +43,7 @@ public class RequestMessage implements Message
 		return this.type;
 	}
 
-	public String getPayload()
+	public int getPayload()
 	{
 		return this.payload;
 	}
