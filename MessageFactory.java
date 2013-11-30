@@ -34,7 +34,7 @@ public class MessageFactory{
 				case 6:
 					return new RequestMessage(messageString);
 				case 7:
-					return new PieceMessage(messageString);
+					return new PieceMessage(messageString, Peer2Peer.peer2Peer.getFileSize(), Peer2Peer.peer2Peer.getPieceSize(), Peer2Peer.peer2Peer.getFileName() );
 				default:
 					throw new Peer2PeerException("ERROR: MessageFactory: toMessage(): unknown message type: "+ type);
 			}

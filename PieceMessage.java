@@ -16,7 +16,6 @@ public class PieceMessage implements Message
 
 	// Constructor Serialize
 
-	// ********************TODO Grab piece from file in message*****************//
 	public PieceMessage(int pieceNumber, int fileSize, int pieceSize, String fileName)
 	{
 		this.pieceNumber = pieceNumber;
@@ -31,7 +30,7 @@ public class PieceMessage implements Message
 	}
 
 	// Deserialize COnstructor
-	public PieceMessage(String message)
+	public PieceMessage(String message, int fileSize, int pieceSize, String fileName)
 	{
 		System.out.println("PieceMessage: The message is: "+ message);
 		if ( Integer.parseInt(message.substring(4,5)) != type)
@@ -41,6 +40,11 @@ public class PieceMessage implements Message
 		this.length = message.length();
 		this.pieceNumber = Integer.parseInt(message.substring(5,9));
 		this.piece = message.substring(9,length);
+
+		this.fileSize = fileSize;
+		this.pieceSize = pieceSize;
+		this.fileName = fileName;
+		writeToFile();
 	}
 
 	// Serialize
@@ -55,6 +59,12 @@ public class PieceMessage implements Message
 	{
 		System.out.println("PieceMessage: GrabPiece() method " + this.fileName);
 		return Segmented.getPiece(this.fileName, this.pieceSize, this.pieceNumber, this.fileSize); 
+	}
+
+	// Write to File 
+	private void writeToFile()
+	{
+		Segmented.writePiece(this.fileName, this.pieceSize, this.pieceNumber, this.fileSize, this.piece );
 	}
 
 	// The get functions
@@ -77,4 +87,19 @@ public class PieceMessage implements Message
 	{
 		return this.type;
 	}
+
+	public String getFileName()
+	{
+        return this.fileName;
+    }
+
+	public int getPieceSize()
+	{
+		return this.pieceSize;
+	}
+
+    public int getFileSize()
+	{
+        return this.fileSize;
+    }
 }

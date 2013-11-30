@@ -1,4 +1,8 @@
 import java.io.*;
+import java.util.*;
+import java.lang.*;
+import java.nio.*;
+import java.nio.channels.FileChannel;
 
 public class Segmented
 {
@@ -17,7 +21,6 @@ public class Segmented
 			System.out.println("Segmented: skip amount(pieceSize-(pieceNumber * pieceSize): " + ((pieceNumber * pieceSize)));
 			fileReader.skip(pieceNumber * pieceSize);
 			fileReader.read(pieceData, 0, pieceSize);
-			// fileReader.read(pieceData, pieceNumber*pieceSize, pieceSize);
 		}
 		catch (Exception e)
 		{
@@ -26,6 +29,49 @@ public class Segmented
 		}
 		
 		return pieceDataString = new String(pieceData);
+	}
+
+	public static synchronized void writePiece(String fileName, int pieceSize, int pieceNumber, int fileSize, String piece)
+	{
+		String name = "peer_" + Peer2Peer.peer2Peer.getPeerId() + System.getProperty("file.separator") + Peer2Peer.peer2Peer.getFileName();
+
+		ByteBuffer buff = ByteBuffer.allocate(pieceSize);
+		buff.clear();
+		for (int i = 0; i < piece.getBytes().length; i++) {
+
+			// Only add to the buffer if the contents at this index are not equal to zero
+			if (piece.getBytes()[i] != 0) {
+				buff.put(piece.getBytes()[i]);
+			} 
+		}
+		// buff.put(piece.getBytes());
+		buff.flip();
+
+ 		//byte[] pieceData = piece.getBytes();
+
+
+		try
+		{
+			File createfile = new File(name);
+			RandomAccessFile file = new RandomAccessFile(name, "rw");
+			//file.skipBytes(pieceSize*pieceNumber);
+
+ 			//file.write( piece.getBytes(), 0, pieceSize);
+			FileChannel writePiece = file.getChannel();
+			writePiece.lock();
+			writePiece.position((long)pieceSize*pieceNumber);
+			while(buff.hasRemaining())
+			{
+				writePiece.write(buff);
+			}
+			writePiece.close();
+		}
+		catch (Exception e)
+		{
+			System.out.println("ERROR: Unexpected state, file not found while writing the piece to the file");
+			e.printStackTrace();
+		}
+
 	}
 
 }
