@@ -1,16 +1,14 @@
 public class NotInterestedMessageHandler extends MessageHandler{
 
-	public NotInterestedMessageHandler(PeerInfoList peerInfoList){
-		super(peerInfoList);
-	}
+        public NotInterestedMessageHandler(PeerInfoList peerInfoList,int remotePeerId){
+                super(peerInfoList, remotePeerId);
+        }
 
-	public void handleMessage(Message message){
-		NotInterestedMessage notInterestedMessage = (NotInterestedMessage)message;
+        public void handleMessage(Message message){
+            NotInterestedMessage notInterestedMessage = (NotInterestedMessage)message;
 
-		System.out.println("NotInterestedMessageHandler: "+ notInterestedMessage.toString());
-		System.out.println("Do NotInterestedMessage response");
+            System.out.println("NotInterestedMessageHandler: from "+remotePeerId+" : "+ notInterestedMessage.toString());
 
-		// remove remotePeer from Interested list if needed. otherwise do nothing.
-
-	}
+			peerInfoList.getPeerInfo(remotePeerId).setIsInterested(false);
+        }
 }

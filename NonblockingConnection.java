@@ -94,7 +94,7 @@ public class NonblockingConnection {
 
 			// Trim the data, if it is not null
 			if (_data != null) {
-				_data = _data.trim();
+				_data = _data.substring(0, handler.getReadLength());
 			}
 
 			// Return the data that the handler received
@@ -212,6 +212,9 @@ public class NonblockingConnection {
 		private boolean completed = false;
 		private boolean isDisconnected = false;
 
+		// The amount of data received
+		private int readLength;
+
 		// Called when read() succeeds
 		public void completed(Integer result, ByteBuffer buffer) {
 			// Are we disconnected? Result length will be -1 if disconnected
@@ -230,6 +233,10 @@ public class NonblockingConnection {
 			
 			// Set completed to true
 			completed = true;
+
+			// Set the length property so that we only read that many bytes
+			// from the buffer
+			readLength = result;
 
 			// "Flip" the buffer
 			buffer.flip();
@@ -254,6 +261,11 @@ public class NonblockingConnection {
 		// Getter for isDisconnected
 		public boolean getIsDisconnected() {
 			return isDisconnected;
+		}
+
+		// Getter for readLength
+		public int getReadLength() {
+			return readLength;
 		}
 	}
 }

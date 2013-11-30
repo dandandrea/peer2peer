@@ -5,28 +5,26 @@ public class BitfieldMessage implements Message
 {
 	// Properties of Bitfield	
 	private List<Integer> pieceList;
-	private int length;
 	private final int type = 5;
 	private String message;
 
 	// Constructor for Bitfield_M
-	public BitfieldMessage(List pieceList)
+	public BitfieldMessage(List<Integer> pieceList)
 	{
 		this.pieceList = pieceList;
 		this.message = convertList(pieceList);
-		this.length = 5 + message.length();
+		System.out.println(pieceList.toString());
 	}
 
 	// Deserialize Constructor
-	public BitfieldMessage(String message)
+	public BitfieldMessage(String message) 
 	{
 		if ( Integer.parseInt(message.substring(4,5)) != type)
 		{
 			System.out.println(" ERROR: Invalid Message Type ");
 		}
-		
 		this.message = deserializeConvert(message.substring(5,message.length()));
-		this.length = 5 + this.message.length();
+		
 		restructurePieceList();
 	}
 
@@ -39,7 +37,7 @@ public class BitfieldMessage implements Message
 		{
 			if( this.message.charAt(i) == '1')
 			{
-				pieceList.add(i+1);
+				pieceList.add(i);
 			}
 		}
 	}
@@ -72,6 +70,7 @@ public class BitfieldMessage implements Message
 
 			builder.append(expect1);
 		}
+
 		return ( builder.reverse().toString() );
 	}
 
@@ -92,7 +91,7 @@ public class BitfieldMessage implements Message
 		for (int i= 0; i < pieceList.size(); i++)
 		{
 			int j = (int)pieceList.get(i);
-			newList[j-1] = "1";
+			newList[j] = "1";
 		}
 
 		// Cats Strings
@@ -117,26 +116,31 @@ public class BitfieldMessage implements Message
 	//Takes a binary String and converts it to 8bit acsii.
 	private String toText(String info) throws UnsupportedEncodingException
 	{
+		System.out.println("ASDK:FHASDFASDFASDFASDf: "+ info);
 		String returnString = "";
 		for (int i = 0; i < info.length()/8; i++) {
 			int charCode = Integer.parseInt(info.substring(0+(i*8), (i+1)*8), 2);
 			returnString += new Character((char)charCode).toString();
 		}
-		
+		System.out.println("returnString BitfieldMessage: "+ returnString);
+
 		return returnString;
 	}
 
 	// To String
 	public String toString()
 	{
-		return String.format("%04d", length) + (type + message);
+		System.out.println("I have this message:  " + message + " with length: "+message.length());
+		return String.format("%04d", message.length() + 5) + (type + message);
 	}
 
 	// The get functions
+
 	public List<Integer> getPieceList()
 	{
 		return pieceList;
 	}
+
 	public String getMessage()
 	{
 		return this.message;
@@ -145,11 +149,5 @@ public class BitfieldMessage implements Message
 	public int getType()
 	{
 		return this.type;
-	}
-
-	public int getLength()
-	{
-		return this.length;
-	}
-	
+	}	
 }

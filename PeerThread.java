@@ -20,6 +20,8 @@ public class PeerThread extends Thread {
 
 	private MessageHandler messageHandler;
 
+	private int requestedPiece;
+
     // PeerThread constructor
     public PeerThread(int remotePeerId, int sleepMilliseconds) throws IOException {
         // Set the remote peer ID
@@ -35,7 +37,9 @@ public class PeerThread extends Thread {
 		inboundMessageQueue = new ConcurrentLinkedQueue<Message>();
 
 		//set messageHandler
-		messageHandler =  new MessageHandler(Peer2Peer.peer2Peer.getPeerInfoList());
+		messageHandler =  new MessageHandler(Peer2Peer.peer2Peer.getPeerInfoList() , remotePeerId);
+
+		requestedPiece = -1;
     }
 
 	// PeerThread constructor
@@ -56,11 +60,14 @@ public class PeerThread extends Thread {
 		inboundMessageQueue = new ConcurrentLinkedQueue<Message>();
 
 		//set messageHandler
-		messageHandler =  new MessageHandler(Peer2Peer.peer2Peer.getPeerInfoList());
+		messageHandler =  new MessageHandler(Peer2Peer.peer2Peer.getPeerInfoList() , remotePeerId);
+
+		requestedPiece = -1;
 	}
 
 	// Thread.run()
 	public void run() {
+
 	    // Do we already have a connection or do we need to establish a connection?
 	    // Did the listener thread construct this item or did Peer2Peer?
 
@@ -73,23 +80,28 @@ public class PeerThread extends Thread {
 			// Instantiate NonblockingConnection
 			connection = new NonblockingConnection(hostname, port);
 			
+			// set self add peerThread for the corresponding peerInfo.
+		    //TODO: test this
+		    Peer2Peer.peer2Peer.getPeerInfoList().getPeerInfo(remotePeerId).setPeerThread(this);
+
+
 			// Send handshake
 			// Stub for now
 		    System.out.println("TODO: Implement real handshake send");
 
+
+
 		    //send handshake message to the inbound peerthread and wait for handshake back.
 		    int remotePeerID = peerDoHandshake(connection);
 		    
-		    //add self to peerInfoList
-		    //TODO: test this
-		    Peer2Peer.peer2Peer.getPeerInfoList().getPeerInfo(remotePeerId).setPeerThread(this);
+
 
 		    // get pieceList
 		    List<Integer> pieceList = Peer2Peer.peer2Peer.getPeerInfoList().getPeerInfo(Peer2Peer.peer2Peer.getPeerId()).getPieceList();
 		    
 		    // If pieceList isnt empty, send a bitfieldMessage.
 		    if(pieceList.size() >0){
-		    	connection.sendData(new BitfieldMessage().toString());	
+		    	connection.sendData(new BitfieldMessage(pieceList).toString());	
 				//connection.sendData(new BitfieldMessage(pieceList).toString());	
 			}
 			else{
@@ -98,17 +110,19 @@ public class PeerThread extends Thread {
 		}
 		//peerThread is inbound  ie. listenerThread spawned peerThread send a handShakeMessage
 		else {
-			//add self to peerInfoList
-			Peer2Peer.peer2Peer.getPeerInfoList().getPeerInfo(remotePeerId).setPeerThread(this);
 
 			//send a handshake to the waiting outbound peerthread.
 			//TODO: test this
 			connection.sendData(new HandshakeMessage(Peer2Peer.peer2Peer.getPeerId()).toString());
 
+			//add self to peerInfoList
+			Peer2Peer.peer2Peer.getPeerInfoList().getPeerInfo(remotePeerId).setPeerThread(this);
+
+
 			sleep(sleepMilliseconds * 2);
 			List<Integer> pieceList = Peer2Peer.peer2Peer.getPeerInfoList().getPeerInfo(Peer2Peer.peer2Peer.getPeerId()).getPieceList();
 		    if(pieceList.size() >0){
-				connection.sendData(new BitfieldMessage().toString());	
+				connection.sendData(new BitfieldMessage(pieceList).toString());	
 				//connection.sendData(new BitfieldMessage(pieceList).toString());
 			}
 			else{
@@ -156,15 +170,29 @@ public class PeerThread extends Thread {
 		outboundMessageQueue.add(message);
 	}
 
+	public Peer2Peer getPeer2Peer(){
+		return Peer2Peer.peer2Peer;
+	}
+
+	public int getRequestedPiece(){
+		return requestedPiece;
+	}
+
+	public void setRequestedPiece(int requestedPiece){
+		this.requestedPiece = requestedPiece;
+	}
+
+
 	// Populate the message queue from inbound data.
 	private void populateInboundMessageQueue() throws Peer2PeerException {
 
 		// Get data from the NBC buffer
 		String fullMessageString = connection.getData();
 
-		System.out.println(Peer2Peer.peer2Peer.getPeerInfoList().getPeerInfo(remotePeerId).getPeerId()+": fullMessageString: "+fullMessageString);
+		
 
 		if(fullMessageString != null){
+			System.out.println(Peer2Peer.peer2Peer.getPeerInfoList().getPeerInfo(remotePeerId).getPeerId()+": fullMessageString: "+fullMessageString);
 			// Break apart fullMessageString into individual messageStrings
 			List<String> dechunkedMessageList = dechunkin(fullMessageString);
 		
@@ -258,12 +286,8 @@ public class PeerThread extends Thread {
 				// Return the remote peer ID
 				return remotePeerId;
 			}
-
-			// Didn't get the remote peer ID yet, sleep and try again
-			//if (i != 9) {
-			    System.out.println("Sleeping and trying to get handshake again");
-			    sleep(sleepMilliseconds);
-			//}
+		    System.out.println("Sleeping and trying to get handshake again");
+		    sleep(sleepMilliseconds);
 		}
 	}
 
@@ -279,19 +303,12 @@ public class PeerThread extends Thread {
 		// Loop and do dechunkin'
 		while (true) {
 	        // Gotta say "dechunkin'" because "dechunkin'"!
-		    System.out.println("Trying to dechunkin' another message");
+		    //System.out.println("Trying to dechunkin' another message");
 
 		    // Are there no more messages?
 			if (inputString == null || inputString.length() == 0) {
-			    System.out.println("No more messages to dechunkin'");
+			    //System.out.println("No more messages to dechunkin'");
 			    break;
-			}
-
-			// Is this a handshake message? If so then just throw it out
-			if (inputString.substring(0, 5).equals("HELLO") == true) {
-			    System.out.println("Discarding handshake message");
-				inputString = inputString.substring(35, inputString.length());
-				continue;
 			}
 
             // Do we have a message whose length is greater than 0 but less than 6?
@@ -300,6 +317,13 @@ public class PeerThread extends Thread {
 			if (inputString.length() < 5) {
 			    System.out.println("ERROR: Got message with invalid format: " + inputString);
 				break;
+			}
+
+			// Is this a handshake message? If so then just throw it out
+			if (inputString.substring(0, 5).equals("HELLO") == true) {
+			    //System.out.println("Discarding handshake message");
+				inputString = inputString.substring(35, inputString.length());
+				continue;
 			}
 
 			// If we made it here then we have a message whose length is at least 6
@@ -316,7 +340,7 @@ public class PeerThread extends Thread {
 				System.out.println("ERROR: Message has invalid format, got bad length header [string is: " + inputString + "] [length is: " + inputString.length() + "]: " + e.getMessage());
 				break;
 			}
-			System.out.println("Got message with length of " + messageLength);
+			//System.out.println("Got message with length of " + messageLength);
 
 			// Does the indicated length of the message exceed
 			// the actual length of the remaining message?
@@ -327,7 +351,7 @@ public class PeerThread extends Thread {
 
 			// We can extract the message now that we have the length
 			String extractedMessage = inputString.substring(0, messageLength);
-			System.out.println("Extracted a message: " + extractedMessage);
+			//System.out.println("Extracted a message: " + extractedMessage);
 
 			// Add the extracted message to the message string list
 			messageStringList.add(extractedMessage);

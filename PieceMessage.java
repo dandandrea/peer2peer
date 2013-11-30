@@ -25,15 +25,18 @@ public class PieceMessage implements Message
 		this.fileName = fileName;
 		this.piece = grabPiece();
 
-		this.length = 5 + Integer.toString(pieceNumber).length() + piece.length();
+		//lllltnnnn
+		//((4)length)((1)Type)((4)PieceNumber)
+		this.length = 9 + piece.length();
 	}
 
 	// Deserialize COnstructor
 	public PieceMessage(String message, int fileSize, int pieceSize, String fileName)
 	{
+		System.out.println("PieceMessage: The message is: "+ message);
 		if ( Integer.parseInt(message.substring(4,5)) != type)
 		{
-			System.out.println(" ERROR: Invalid Message Type ");
+			System.out.println("PieceMessage: ERROR: Invalid Message Type ");
 		}
 		this.length = message.length();
 		this.pieceNumber = Integer.parseInt(message.substring(5,9));
@@ -48,13 +51,17 @@ public class PieceMessage implements Message
 	// Serialize
 	public String toString()
 	{
-		return  String.format("%04d", length) + (type + String.format("%04d",Integer.toString(pieceNumber)) + piece);
+		return  String.format("%04d", length) + type + String.format("%04d", pieceNumber) + (piece);
 	}
 
 
 	// Grab the piece of File
 	private String grabPiece()
 	{
+<<<<<<< HEAD
+=======
+		System.out.println("PieceMessage: GrabPiece() method " + this.fileName);
+>>>>>>> 78ae76bab31719f36cadf5ee9b8c55b321e0b7e4
 		return Segmented.getPiece(this.fileName, this.pieceSize, this.pieceNumber, this.fileSize); 
 	}
 

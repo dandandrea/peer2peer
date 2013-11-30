@@ -3,48 +3,38 @@ import java.io.*;
 
 public class HaveMessage implements Message
 {
-	private final int type = 4;
-	private int length;
-	private String payload;
-	
+	// The piece number
+	private int pieceNumber;
+
 	// Constructor for Have message
-	public HaveMessage(int havePiece)
+	public HaveMessage(int pieceNumber)
 	{	
-		this.payload = Integer.toString(havePiece);
-		this.length = 5 + payload.length();
+		// Set the piece numer
+		this.pieceNumber = pieceNumber;
 	}
 	
 	// Deserialize Constructor
 	public HaveMessage(String message)
 	{
-		if ( Integer.parseInt(message.substring(4,5)) != type)
+		if ( message.substring(4,5).equals("4") == false )
 		{
-			System.out.println(" ERROR: Invalid Message Type ");
+			System.out.println(" ERROR in HaveMessage: Invalid Message Type (" + message.substring(4, 5) + ")");
 		}
-		this.length = message.length();
-		this.payload = message.substring(5,length);
+
+		// Extract the piece number
+		pieceNumber = Integer.parseInt(message.substring(5, message.length()));
 	}
 
 	// To String
 	public String toString()
 	{
-		return String.format("%04d", length) + (type + payload);
+		// Serialize
+		String payload = new Integer(pieceNumber).toString();
+		return String.format("%04d", 4 + 1 + payload.length()) + "4" + payload;
 	}
 
 	// The get functions
-	public int getLength()
-	{
-		return this.length;
+	public int getHavePieceNumber(){
+		return pieceNumber;
 	}
-	
-	public int getType()
-	{
-		return this.type;
-	}
-
-	public String getPayload()
-	{
-		return this.payload;
-	}
-
 }

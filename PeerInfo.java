@@ -11,6 +11,8 @@ public class PeerInfo {
     private PeerThread peerThread;
     private List<Integer> pieceList;
 	private boolean isInterested;
+    private boolean amChokedByThem;
+    private boolean isChokedByMe;
 
     // Constructor
     public PeerInfo(int peerId, String hostname, int port, int hasFile) {
@@ -18,12 +20,34 @@ public class PeerInfo {
         this.hostname = hostname;
         this.port = port;
         this.hasFile = hasFile;
-        pieceList = new ArrayList<Integer>();        
+        pieceList = new ArrayList<Integer>(); 
+        isInterested = false;
+        amChokedByThem = true;
+        isChokedByMe = true;       
     }
 
     // Default constructor
     public PeerInfo() {
-        pieceList = new ArrayList<Integer>();     
+        pieceList = new ArrayList<Integer>();
+        isInterested = false;
+        amChokedByThem = true;
+        isChokedByMe = true;     
+    }
+
+    public boolean getAmChokedBythem(){
+        return amChokedByThem;
+    }
+
+    public void setAmChokedBythem(boolean amChokedByThem){
+        this.amChokedByThem = amChokedByThem;
+    }
+
+    public boolean getIsChokedByMe(){
+        return isChokedByMe;
+    }
+
+    public void setIsChokedByMe(boolean isChokedByMe){
+        this.isChokedByMe = isChokedByMe;
     }
 
 	// Getter for isInterested

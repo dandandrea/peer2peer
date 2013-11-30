@@ -1,21 +1,49 @@
 public class HaveMessageHandler extends MessageHandler{
 
-	public HaveMessageHandler(PeerInfoList peerInfoList){
-		super(peerInfoList);
-	}
+        public HaveMessageHandler(PeerInfoList peerInfoList, int remotePeerId){
+                super(peerInfoList, remotePeerId);
+        }
 
-	public void handleMessage(Message message){
-		HaveMessage haveMessage = (HaveMessage)message;
+        public void handleMessage(Message message){
+                HaveMessage haveMessage = (HaveMessage)message;
 
-		System.out.println("HaveMessageHandler: "+ haveMessage.toString());
+                System.out.println("HaveMessageHandler: "+ haveMessage.toString());
 
-		//Do work to the pieceList or bitfield of the peer you are connected to. this might need to be a syncrinized.
+                int pieceToAdd = haveMessage.getHavePieceNumber();
 
-		//compare what this peer had to what the remotePeer has
+                System.out.println("HaveMessageHandler: pieceToAdd from "+ remotePeerId+ " is : "+ pieceToAdd);
+                //Do i know about the peer having this pieceToAdd?
+                if(getPeerInfoList().getPeerInfo(remotePeerId).getPieceList().contains(pieceToAdd)  == false){
+                        //add it to the pieceList
+                        getPeerInfoList().getPeerInfo(remotePeerId).getPieceList().add(pieceToAdd);
+                }
 
-		//if remotePeer has a piece this peer does not have
-			//thisPeer.sendMessage(new InterestedMessage());
-		//else
-			//thisPeer.sendMessage(new NotInterestedMessage());
-	}
+                System.out.println("HaveMessageHandler:I"+Peer2Peer.peer2Peer.getPeerId()+" HAVE: "+getPeerInfoList().getPeerInfo(Peer2Peer.peer2Peer.getPeerId()).getPieceList());
+                System.out.println("HaveMessageHandler:YOU"+remotePeerId+ "HAVE: "+getPeerInfoList().getPeerInfo(remotePeerId).getPieceList());
+
+                
+                boolean interested = false;
+
+                //for each piece in my peers piece List , Do i need it? if so im interested.
+                for (int piece :  getPeerInfoList().getPeerInfo(remotePeerId).getPieceList()){
+
+                        //if i dont have the piece in question.
+                        if(interested == false && getPeerInfoList().getPeerInfo(Peer2Peer.peer2Peer.getPeerId()).getPieceList().contains(piece) == false){
+                                System.out.println("HaveMessageHandler: sending interestedMessage");
+                                //im interested.
+                                interested = true;
+                                break;
+                        }
+                }
+
+                //if remotePeer has pieces this peer does not have
+                if(interested){
+                        System.out.println("HaveMessageHandler: sending interestedMessage");
+                        peerInfoList.getPeerInfo(remotePeerId).getPeerThread().sendMessage(new InterestedMessage());
+                }
+                else{
+                        System.out.println("HaveMessageHandler: sending not interested message");
+                        peerInfoList.getPeerInfo(remotePeerId).getPeerThread().sendMessage(new NotInterestedMessage());
+                }
+        }
 }
