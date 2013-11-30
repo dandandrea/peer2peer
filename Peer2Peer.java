@@ -34,7 +34,7 @@ public class Peer2Peer {
 	protected static Peer2Peer peer2Peer;
 
 	// Number of milliseconds to sleep (used throughout the application)
-	private static final int SLEEP_MILLISECONDS = 500;
+	private static final int SLEEP_MILLISECONDS = 125;
 
     // Constructor
     public Peer2Peer(int peerId) throws IOException, InterruptedException, ExecutionException, Peer2PeerException {
@@ -306,16 +306,19 @@ public class Peer2Peer {
             List<Integer> canidateList = new ArrayList<Integer>();
 
             // check which pieces i need from remotePeer and add them to the canidateList
+
+            //System.out.println("Peer2Peer: This is "+remotePeer+"'s pieceList: "+peerInfoList.getPeerInfo(remotePeer).getPieceList().toString());
             for(int pieceNumber: peerInfoList.getPeerInfo(remotePeer).getPieceList()){
 
                 //if remotePeer has a piece and This peer does not.
                 if(doNotHaveList.contains(pieceNumber) == true){
                     
                     //add that piece to the canidateList
+                    //System.out.println("Peer2Peer: adding piece to canidateList: " +pieceNumber);
                     canidateList.add(pieceNumber);
-
                 }
             }
+            //System.out.println("Peer2Peer: The canidateList is : "+canidateList.toString());
 
             //safeguard from race condition.
             if(canidateList.size() == 0){
@@ -333,11 +336,12 @@ public class Peer2Peer {
 
             //get the index between 0 and list.size. 
             int randomNumberIndex = rand.nextInt((max - min) + 1) + min;
+            //System.out.println("Peer2Peer: index of return piece: "+ randomNumberIndex);
 
             //remove that index from the list
-            int returnRequestNumber = doNotHaveList.get(randomNumberIndex);
+            int returnRequestNumber = canidateList.get(randomNumberIndex);
 
-            System.out.println("Peer2Peer: checkoutPiece: ["+randomNumberIndex+"] = "+returnRequestNumber);
+            //System.out.println("Peer2Peer: checkoutPiece: "+returnRequestNumber);
 
             // finalize the checkout by removing it from the doNotHaveList
             doNotHaveList.remove(doNotHaveList.indexOf(returnRequestNumber));
@@ -429,8 +433,14 @@ public class Peer2Peer {
                 if(peerInfo.getIsChokedByMe() == true){
                     //send them a unchoked message
                     System.out.println("Peer2Peer: unchokePreferredNeighbors: Unchoking: "+ peerInfo.getPeerId());
-                    peerInfo.getPeerThread().sendMessage(new UnchokeMessage());
-
+                    
+                    peerInfo.getPeerThread().getLock().lock();
+                    try{
+                        peerInfo.getPeerThread().sendMessage(new UnchokeMessage());
+                    }
+                    finally{
+                        peerInfo.getPeerThread().getLock().unlock();
+                    }
                     //mark them as unchoked
                     peerInfo.setIsChokedByMe(false);
                 }
@@ -441,8 +451,15 @@ public class Peer2Peer {
                 if(peerInfo.getIsChokedByMe() == false){
                     System.out.println("Peer2Peer: unchokePreferredNeighbors: Choking: "+ peerInfo.getPeerId());
 
-                    //send them a choked message
-                    peerInfo.getPeerThread().sendMessage(new ChokeMessage());
+                    peerInfo.getPeerThread().getLock().lock();
+                    try{
+                        //send them a choked message
+                        peerInfo.getPeerThread().sendMessage(new ChokeMessage());
+                    }
+                    finally{
+                        peerInfo.getPeerThread().getLock().unlock();
+                    }
+
 
                     //mark them as choked
                     peerInfo.setIsChokedByMe(true);
@@ -473,7 +490,7 @@ public class Peer2Peer {
             System.out.println("About to call unchokePreferredNeighbors()");
             peer2Peer.unchokePreferredNeighbors();
 
-            System.out.println("Peer2Peer: pieceList:"+ peer2Peer.getPeerInfoList().getPeerInfo(peer2Peer.getPeerId()).getPieceList().toString());
+            System.out.println("Peer2Peer: pieceList.Size(): "+peer2Peer.getPeerInfoList().getPeerInfo(peer2Peer.getPeerId()).getPieceList().size()+ " list: "+ peer2Peer.getPeerInfoList().getPeerInfo(peer2Peer.getPeerId()).getPieceList().toString());
             System.out.println("Peer2Peer: doNotHaveList:"+peer2Peer.getDoNotHaveList().toString());
 
             peer2Peer.sleep(peer2Peer.getUnchokingInterval() * 1000);

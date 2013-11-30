@@ -28,7 +28,7 @@ public class RequestMessage implements Message
 	// To String
 	public String toString()
 	{	
-		System.out.println("About to send requestMessage: " +String.format("%04d", length) + (type + payload));
+		System.out.println("RequestMessage: About to send requestMessage: " +String.format("%04d", length) + type + payload);
 		return String.format("%04d", length) + (type) + (payload);
 	}
 

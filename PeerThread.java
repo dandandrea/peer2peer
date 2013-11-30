@@ -2,6 +2,7 @@ import java.io.*;
 import java.lang.*;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.locks.*;
 
 public class PeerThread extends Thread {
     // Remote peer ID
@@ -15,6 +16,7 @@ public class PeerThread extends Thread {
 	private NonblockingConnection connection;
 
 	//thread safe queue
+	private final ReentrantLock lock = new ReentrantLock();
 	private Queue<Message> outboundMessageQueue;
 	private Queue<Message> inboundMessageQueue;
 
@@ -132,8 +134,9 @@ public class PeerThread extends Thread {
 
 		// This is the main loop of the thread
 		while (true) {
-
+			//System.out.println("PeerThread: outboundMessageQueue.size(): "+outboundMessageQueue.size());
 			// If I have any messages I need to send, get the first message and send it.
+
 			if(outboundMessageQueue.size() > 0){
 
 				// get and remove the first message from the outboundMessageQueue
@@ -148,9 +151,9 @@ public class PeerThread extends Thread {
 				populateInboundMessageQueue();
 			}
 			catch (Peer2PeerException e) {
-				System.out.println("ERROR: Caught Peer2PeerException while calling populateInboundMessageQueue: " + e.getMessage());
+				System.out.println("PeerThread: ERROR: Caught Peer2PeerException while calling populateInboundMessageQueue: " + e.getMessage());
 			}
-
+			//System.out.println("PeerThread: inboundMessageQueue.size(): "+inboundMessageQueue.size());
 			// Check to see if I should handle the next message sent to me by my remotePeer.
 			if(inboundMessageQueue.size() > 0){
 
@@ -182,6 +185,9 @@ public class PeerThread extends Thread {
 		this.requestedPiece = requestedPiece;
 	}
 
+	public ReentrantLock getLock(){
+		return lock;
+	}
 
 	// Populate the message queue from inbound data.
 	private void populateInboundMessageQueue() throws Peer2PeerException {

@@ -32,7 +32,7 @@ public class ChokeMessageHandler extends MessageHandler{
 			finally{
 
 			//unlock doNotHasList
-			peerThread.getPeer2Peer().getLock().lock();	
+			peerThread.getPeer2Peer().getLock().unlock();	
 
 			}
 

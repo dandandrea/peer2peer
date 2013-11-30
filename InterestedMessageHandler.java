@@ -8,7 +8,7 @@ public class InterestedMessageHandler extends MessageHandler{
                 InterestedMessage interestedMessage = (InterestedMessage)message;
 
                 System.out.println("InterestedMessageHandler: "+ interestedMessage.toString());
-               
+                System.out.println("InterestedMessageHandler: peer is interested: "+ remotePeerId);
                 peerInfoList.getPeerInfo(remotePeerId).setIsInterested(true);
                 // Add the peer that sent this to you to a interested list if it is not all ready there.
                 // this might need to be sync'ed.

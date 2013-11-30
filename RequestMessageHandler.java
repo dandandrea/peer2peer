@@ -18,12 +18,14 @@ public class RequestMessageHandler extends MessageHandler{
 
 			Peer2Peer peer2Peer = peerThread.getPeer2Peer();
 
-			//send a piece message
-			peerThread.sendMessage(new PieceMessage(requestMessage.getPayload(), peer2Peer.getFileSize(), peer2Peer.getPieceSize(), peer2Peer.getFileName()));
-			System.out.println("RequestMessageHandler: from "+ remotePeerId +"sending : "+ requestMessage.toString());
+			peerThread.getLock().lock();
+			try{
+				//send a piece message
+				peerThread.sendMessage(new PieceMessage(requestMessage.getPayload(), peer2Peer.getFileSize(), peer2Peer.getPieceSize(), peer2Peer.getFileName()));
+			}
+			finally{
+				peerThread.getLock().unlock();
+			}
 		}
-			// get piece and prepare pieceMessage for sending
-		//else
-			//no nothing.
 	}
 } 

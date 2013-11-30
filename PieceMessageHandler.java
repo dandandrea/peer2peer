@@ -24,51 +24,61 @@ public class PieceMessageHandler extends MessageHandler{
 			//System.out.println("PieceMessageHandler: adding piece to pieceList");
 			peerInfoList.getPeerInfo(peerThread.getPeer2Peer().getPeerId()).getPieceList().add(requestPieceNumber);
 
-
 			//System.out.println("PieceMessageHandler: send HaveMesage to all other peers");
 
 			//for each peer, send them a have message, and check if im interested in them.
 			for(int i =0; i < peerInfoList.getSize(); i++){
-				//if peer at i is not me.
-				//System.out.println("PieceMessageHandler: comparing id's :" +peerInfoList.getPeerInfoByIndex(i).getPeerId() +" : "+ remotePeerId);
-		
-				//send a have message
+			
 				if(peerInfoList.getPeerInfoByIndex(i).getPeerThread() != null){
-					System.out.println("PieceMessageHandler: HaveMessage sent to :" +peerInfoList.getPeerInfoByIndex(i).getPeerId());
-					peerInfoList.getPeerInfoByIndex(i).getPeerThread().sendMessage(new HaveMessage(requestPieceNumber));
-				}
-				else{
+					peerInfoList.getPeerInfoByIndex(i).getPeerThread().getLock().lock();
+					try{	
+						System.out.println("PieceMessageHandler: HaveMessage sent to :" +peerInfoList.getPeerInfoByIndex(i).getPeerId());
+						peerInfoList.getPeerInfoByIndex(i).getPeerThread().sendMessage(new HaveMessage(requestPieceNumber));
+					}
+					finally{
+						peerInfoList.getPeerInfoByIndex(i).getPeerThread().getLock().unlock();
+					}
+	
+
+						boolean interested = false;
+
+		                //for each piece in my peers piece List , Do i need it? if so im interested.
+		                for (int piece :  peerInfoList.getPeerInfoByIndex(i).getPieceList()){
+		                    //if i dont have the piece in question.
+		                    if(interested == false && getPeerInfoList().getPeerInfo(Peer2Peer.peer2Peer.getPeerId()).getPieceList().contains(piece) == false){
+		                            //im interested.
+		                            interested = true;
+		                            break;
+		                    }
+		                }
+		                //if remotePeer has pieces this peer does not have
+		                if(interested == false){
+		            		System.out.println("PieceMessageHandler: sending not interested message");
+				            peerInfoList.getPeerInfoByIndex(i).getPeerThread().getLock().lock();
+							try{	
+					        	peerInfoList.getPeerInfoByIndex(i).getPeerThread().sendMessage(new NotInterestedMessage());
+							}
+							finally{
+								peerInfoList.getPeerInfoByIndex(i).getPeerThread().getLock().unlock();
+							}
+		           
+		                }
+					
+        		}
+        		else{
 					System.out.println("PieceMessageHandler: peerThread was null : "+peerInfoList.getPeerInfoByIndex(i).getPeerId());
 				}
-
-				boolean interested =  false;
-
-				//for peer i, check if you are not interested.
-               for (int piece :  getPeerInfoList().getPeerInfoByIndex(i).getPieceList()){
-                    //if i dont have the piece in question.
-                    if(interested == false && getPeerInfoList().getPeerInfo(Peer2Peer.peer2Peer.getPeerId()).getPieceList().contains(piece) == false){
-                        //im imterested. thus do nothing
-						System.out.println("PieceMessageHandler: I need "+piece+" from " +peerInfoList.getPeerInfoByIndex(i).getPeerId()); 	 
-                        interested = true;
-                    }
-                }
-
-                // send not interested. see top of page 5 of document.
-                if(interested == false){
-                	if(peerInfoList.getPeerInfoByIndex(i).getPeerThread() != null){
-                		System.out.println("PieceMessageHandler: I have all "+peerInfoList.getPeerInfoByIndex(i).getPeerId()+"'s pieces: sending NotInterestedMessage");
-                		peerInfoList.getPeerInfoByIndex(i).getPeerThread().sendMessage(new NotInterestedMessage());
-               	 	}
-                }
+					
 			}
 
 
 			//get that i am choked by them
 			boolean amChokedByThem = peerInfoList.getPeerInfo(remotePeerId).getAmChokedBythem();
 
+			System.out.println("PieceMessageHandler: am i choked by"+remotePeerId+" : " +amChokedByThem);
+
 			//if im unchoked request another piece
 			if(amChokedByThem == false){
-				//System.out.println("PieceMessageHandler: TODO: I'm not choked, so request another piece");
 				int checkoutPiece = -1;
 
 				System.out.println("PieceMessageHandler: trying to get lock for "+ remotePeerId);
@@ -96,17 +106,18 @@ public class PieceMessageHandler extends MessageHandler{
 
 				if(checkoutPiece != -1){
 					//send a requestMessage
-					peerThread.sendMessage(new RequestMessage(checkoutPiece));
+					peerThread.getLock().lock();
+					try{	
+						System.out.println("PieceMessageHandler: sending request for " +checkoutPiece+" to "+ remotePeerId);
+						peerThread.sendMessage(new RequestMessage(checkoutPiece));
+					}
+					finally{
+						peerThread.getLock().unlock();
+					}
 				}
 			}
 		}
 		else{
-
-			//TODO: make this more robust
-			//if i get a piece i wasnted expecting dont write it to my file, but do the following checks still
-			//release checkback in the piece i currently have requested.
-			//if im unchoked still
-				//request another piece
 			System.out.println("PieceMessageHandler: ERROR: I got a message that I wasn't expecting");
 		}
 	}

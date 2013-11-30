@@ -21,12 +21,18 @@ public class BitfieldMessageHandler extends MessageHandler{
 			}
 		}
 
-		//if remotePeer has pieces this peer does not have
-		if(interested){
-			peerInfoList.getPeerInfo(remotePeerId).getPeerThread().sendMessage(new InterestedMessage());
+		peerInfoList.getPeerInfo(remotePeerId).getPeerThread().getLock().lock();
+		try{
+					//if remotePeer has pieces this peer does not have
+			if(interested){
+				peerInfoList.getPeerInfo(remotePeerId).getPeerThread().sendMessage(new InterestedMessage());
+			}
+			else{
+				peerInfoList.getPeerInfo(remotePeerId).getPeerThread().sendMessage(new NotInterestedMessage());
+			}
 		}
-		else{
-			peerInfoList.getPeerInfo(remotePeerId).getPeerThread().sendMessage(new NotInterestedMessage());
+		finally{
+			getPeerInfoList().getPeerInfo(remotePeerId).getPeerThread().getLock().unlock();
 		}
 	}
 }
