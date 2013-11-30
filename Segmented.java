@@ -1,4 +1,8 @@
 import java.io.*;
+import java.util.*;
+import java.lang.*;
+import java.nio.*;
+import java.nio.channels.FileChannel;
 
 public class Segmented
 {
@@ -25,6 +29,33 @@ public class Segmented
 		}
 		
 		return pieceDataString = new String(pieceData);
+	}
+
+	public static void writePiece(String fileName, int pieceSize, int pieceNumber, int fileSize, String piece)
+	{
+
+		ByteBuffer buff = ByteBuffer.allocate(pieceSize);
+		buff.clear();
+		buff.put(piece.getBytes());
+		buff.flip();
+ 
+		try
+		{
+			RandomAccessFile file = new RandomAccessFile(fileName, "w");
+			FileChannel writePiece = file.getChannel();
+			writePiece.position((long)((pieceSize*pieceNumber)-pieceSize));
+			while(buff.hasRemaining())
+			{
+				writePiece.write(buff);
+			}
+			writePiece.close();
+		}
+		catch (Exception e)
+		{
+			System.out.println("ERROR: Unexpected state, file not found while writing the piece to the file");
+			e.printStackTrace();
+		}
+
 	}
 
 }

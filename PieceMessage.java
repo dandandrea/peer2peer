@@ -29,7 +29,7 @@ public class PieceMessage implements Message
 	}
 
 	// Deserialize COnstructor
-	public PieceMessage(String message)
+	public PieceMessage(String message, int fileSize, int pieceSize, String fileName)
 	{
 		if ( Integer.parseInt(message.substring(4,5)) != type)
 		{
@@ -38,6 +38,11 @@ public class PieceMessage implements Message
 		this.length = message.length();
 		this.pieceNumber = Integer.parseInt(message.substring(5,9));
 		this.piece = message.substring(9,length);
+
+		this.fileSize = fileSize;
+		this.pieceSize = pieceSize;
+		this.fileName = fileName;
+		writeToFile();
 	}
 
 	// Serialize
@@ -50,8 +55,13 @@ public class PieceMessage implements Message
 	// Grab the piece of File
 	private String grabPiece()
 	{
-		System.out.println(" GrabPiece() method " + this.fileName);
 		return Segmented.getPiece(this.fileName, this.pieceSize, this.pieceNumber, this.fileSize); 
+	}
+
+	// Write to File 
+	private void writeToFile()
+	{
+		Segmented.writePiece(this.fileName, this.pieceSize, this.pieceNumber, this.fileSize, this.piece );
 	}
 
 	// The get functions
