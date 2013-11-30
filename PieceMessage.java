@@ -58,10 +58,7 @@ public class PieceMessage implements Message
 	// Grab the piece of File
 	private String grabPiece()
 	{
-<<<<<<< HEAD
-=======
 		System.out.println("PieceMessage: GrabPiece() method " + this.fileName);
->>>>>>> 78ae76bab31719f36cadf5ee9b8c55b321e0b7e4
 		return Segmented.getPiece(this.fileName, this.pieceSize, this.pieceNumber, this.fileSize); 
 	}
 

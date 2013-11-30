@@ -21,7 +21,6 @@ public class Segmented
 			System.out.println("Segmented: skip amount(pieceSize-(pieceNumber * pieceSize): " + ((pieceNumber * pieceSize)));
 			fileReader.skip(pieceNumber * pieceSize);
 			fileReader.read(pieceData, 0, pieceSize);
-			// fileReader.read(pieceData, pieceNumber*pieceSize, pieceSize);
 		}
 		catch (Exception e)
 		{
@@ -42,9 +41,9 @@ public class Segmented
  
 		try
 		{
-			RandomAccessFile file = new RandomAccessFile(fileName, "w");
+			RandomAccessFile file = new RandomAccessFile(fileName, "rw");
 			FileChannel writePiece = file.getChannel();
-			writePiece.position((long)((pieceSize*pieceNumber)-pieceSize));
+			writePiece.position((long)pieceSize*pieceNumber);
 			while(buff.hasRemaining())
 			{
 				writePiece.write(buff);
