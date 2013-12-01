@@ -18,7 +18,13 @@ public class PieceMessageHandler extends MessageHandler{
 		int requestPieceNumber = peerThread.getRequestedPiece();
 		System.out.println("PieceMessageHandler: requestPieceNumber: "+requestPieceNumber + " PieceNumber i got: " + pieceMessage.getPieceNumber());
 
+		// Checking instance of piece message
 		if(requestPieceNumber == pieceMessage.getPieceNumber()){
+			
+			if ( pieceMessage instanceof PieceMessage )
+			{
+				PieceMessage mg = new PieceMessage(pieceMessage.toString(), pieceMessage.getFileSize(), pieceMessage.getPieceSize(), pieceMessage.getFileName() );
+			}
 
 			//update my pieceList
 			//System.out.println("PieceMessageHandler: adding piece to pieceList");

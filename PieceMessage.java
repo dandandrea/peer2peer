@@ -16,7 +16,6 @@ public class PieceMessage implements Message
 
 	// Constructor Serialize
 
-	// ********************TODO Grab piece from file in message*****************//
 	public PieceMessage(int pieceNumber, int fileSize, int pieceSize, String fileName)
 	{
 		this.pieceNumber = pieceNumber;
@@ -88,4 +87,19 @@ public class PieceMessage implements Message
 	{
 		return this.type;
 	}
+
+	public String getFileName()
+	{
+        return this.fileName;
+    }
+
+	public int getPieceSize()
+	{
+		return this.pieceSize;
+	}
+
+    public int getFileSize()
+	{
+        return this.fileSize;
+    }
 }

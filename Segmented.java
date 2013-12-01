@@ -35,15 +35,22 @@ public class Segmented
 	{
 
 		ByteBuffer buff = ByteBuffer.allocate(pieceSize);
-		buff.clear();
-		buff.put(piece.getBytes());
-		buff.flip();
- 
+		//ByteBuffer[] buff = piece.getBytes();
+		//buff.put(piece.getBytes());
+		//buff.flip();
+
+ 		//byte[] pieceData = new byte[pieceSize];
+
+
 		try
 		{
-			RandomAccessFile file = new RandomAccessFile(fileName, "rw");
+			RandomAccessFile file = new RandomAccessFile("NewFile.dat", "rw");
+			file.skipBytes(pieceSize*pieceNumber);
+
+ 			//file.write( piece.getBytes(), 0, pieceSize);
 			FileChannel writePiece = file.getChannel();
-			writePiece.position((long)pieceSize*pieceNumber);
+			writePiece.lock();
+			//writePiece.position((long)pieceSize*pieceNumber);
 			while(buff.hasRemaining())
 			{
 				writePiece.write(buff);
