@@ -9,6 +9,9 @@ public class UnchokeMessageHandler extends MessageHandler{
 
 		System.out.println("UnchokeMessageHandler: unchoked by "+remotePeerId+" : "+ unchokeMessage.toString());
 
+		// Write to log
+		Peer2Peer.peer2Peer.writeToLog("Peer [peer_ID " + Peer2Peer.peer2Peer.getPeerId() + "] is unchoked by [peer_ID " + remotePeerId + "].");
+
 		// set choked boolean to false;
 		// find piece and prepare a pieceMessage for a piece this peer does not have
 		// send that piece 

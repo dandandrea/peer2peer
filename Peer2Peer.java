@@ -95,6 +95,9 @@ public class Peer2Peer {
 				// Start thread for this peer
 		        PeerThread peerThread = new PeerThread(peerInfoList.getPeerInfoByIndex(i).getPeerId(), SLEEP_MILLISECONDS);
 		        peerThread.start();
+
+				// Write to log
+				writeToLog("Peer [peer_ID " + peerId + "] makes conection to Peer [peer_ID " + peerInfoList.getPeerInfoByIndex(i).getPeerId() + "].");
 			}
 		}
 	}
@@ -305,15 +308,16 @@ public class Peer2Peer {
     protected void writeToLog(String message) {
         // Get current date and time
         GregorianCalendar date = new GregorianCalendar();
+        int month = date.get(Calendar.MONTH) + 1; // Month is zero-based
         int day = date.get(Calendar.DAY_OF_MONTH);
-        int month = date.get(Calendar.MONTH);
         int year = date.get(Calendar.YEAR);
-        int second = date.get(Calendar.SECOND);
+        int hour = date.get(Calendar.HOUR_OF_DAY);
         int minute = date.get(Calendar.MINUTE);
-        int hour = date.get(Calendar.HOUR);
-        String timestamp = month + "/" + day + "/" + year + " " + hour + ":" + minute + ":" + second;
+        int second = date.get(Calendar.SECOND);
+        int millisecond = date.get(Calendar.MILLISECOND);
+        String timestamp = String.format("%02d/%02d/%04d %02d:%02d:%02d.%03d", month, day, year, hour, minute, second, millisecond);
 
-        // Write to the log and flush (the toilet)
+        // Write to the log and flush
 		try {
         	logFileWriter.write("[" + timestamp + "]: " + message + "\n");
         	logFileWriter.flush();
