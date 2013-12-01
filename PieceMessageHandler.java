@@ -28,8 +28,15 @@ public class PieceMessageHandler extends MessageHandler{
 
 			//update my pieceList
 			//System.out.println("PieceMessageHandler: adding piece to pieceList");
-			peerInfoList.getPeerInfo(peerThread.getPeer2Peer().getPeerId()).getPieceList().add(requestPieceNumber);
 
+
+			peerInfoList.getPeerInfo(peerThread.getPeer2Peer().getPeerId()).getLock().lock();
+			try{
+				peerInfoList.getPeerInfo(peerThread.getPeer2Peer().getPeerId()).getPieceList().add(requestPieceNumber);
+			}
+			finally{
+				peerInfoList.getPeerInfo(peerThread.getPeer2Peer().getPeerId()).getLock().unlock();
+			}
 			//System.out.println("PieceMessageHandler: send HaveMesage to all other peers");
 
 			//for each peer, send them a have message, and check if im interested in them.

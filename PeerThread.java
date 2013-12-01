@@ -138,12 +138,17 @@ public class PeerThread extends Thread {
 			// If I have any messages I need to send, get the first message and send it.
 
 			if(outboundMessageQueue.size() > 0){
-
+				lock.lock();
+				try{
 				// get and remove the first message from the outboundMessageQueue
 				Message sendThisMessage = outboundMessageQueue.poll();
 				
 				//send the message using NBC.
 				connection.sendData(sendThisMessage.toString());
+				}
+				finally{
+					lock.unlock();
+				}
 			}
 
 			// populate inboundMessageQueue with all possible messages from connection.getData() with the help of dechunkin
@@ -159,7 +164,6 @@ public class PeerThread extends Thread {
 
 				// get and remove the first message from the inboundMessageQueue
 				Message message = inboundMessageQueue.poll();
-
 				// handle that massage
 				messageHandler.handleMessage(message);
 			}

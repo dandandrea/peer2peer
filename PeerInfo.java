@@ -1,4 +1,5 @@
 import java.util.*;
+import java.util.concurrent.locks.*;
 
 // Class for holding PeerInfo
 // One instance of a PeerInfo class is created for each line in PeerInfo.cfg
@@ -13,6 +14,7 @@ public class PeerInfo {
 	private boolean isInterested;
     private boolean amChokedByThem;
     private boolean isChokedByMe;
+    private final ReentrantLock lock = new ReentrantLock();
 
     // Constructor
     public PeerInfo(int peerId, String hostname, int port, int hasFile) {
@@ -32,6 +34,10 @@ public class PeerInfo {
         isInterested = false;
         amChokedByThem = true;
         isChokedByMe = true;     
+    }
+
+    public ReentrantLock getLock(){
+        return lock;
     }
 
     public boolean getAmChokedBythem(){
