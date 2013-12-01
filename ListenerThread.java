@@ -62,13 +62,13 @@ public class ListenerThread extends Thread {
 					//Do handshake
 					int remotePeerId = doHandshake(connection);
 
-					//send hand
-
-
-					//successful handshake
+					// Successful handshake
 				    System.out.println("ListenerThread successful handshake, creating PeerThread");
                     PeerThread peerThread = new PeerThread(remotePeerId, connection, sleepMilliseconds);
 			        peerThread.start();
+
+					// Write to log
+					Peer2Peer.peer2Peer.writeToLog("Peer [peer_ID " + Peer2Peer.peer2Peer.getPeerId() + "] is connected from Peer [peer_ID " + remotePeerId + "].");
 
 				    // Close the channel
 				    asynchronousServerSocketChannel.close();

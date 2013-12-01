@@ -95,6 +95,9 @@ public class Peer2Peer {
 				// Start thread for this peer
 		        PeerThread peerThread = new PeerThread(peerInfoList.getPeerInfoByIndex(i).getPeerId(), SLEEP_MILLISECONDS);
 		        peerThread.start();
+
+				// Write to log
+				writeToLog("Peer [peer_ID " + peerId + "] makes conection to Peer [peer_ID " + peerInfoList.getPeerInfoByIndex(i).getPeerId() + "].");
 			}
 		}
 	}
@@ -310,10 +313,10 @@ public class Peer2Peer {
         int year = date.get(Calendar.YEAR);
         int second = date.get(Calendar.SECOND);
         int minute = date.get(Calendar.MINUTE);
-        int hour = date.get(Calendar.HOUR);
+        int hour = date.get(Calendar.HOUR_OF_DAY);
         String timestamp = month + "/" + day + "/" + year + " " + hour + ":" + minute + ":" + second;
 
-        // Write to the log and flush (the toilet)
+        // Write to the log and flush
 		try {
         	logFileWriter.write("[" + timestamp + "]: " + message + "\n");
         	logFileWriter.flush();
