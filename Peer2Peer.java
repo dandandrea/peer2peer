@@ -43,6 +43,9 @@ public class Peer2Peer {
 
 		// Process configuration files
 		try {
+		    // Create peer directory, if it doesn't already exist
+		    createPeerDirectory();
+
 			// Parse Common.cfg
         	// This sets all of the various Common.cfg-related class properties
         	parseCommonConfigFile();
@@ -56,11 +59,14 @@ public class Peer2Peer {
 			// Validate PeerInfo.cfg
 			validatePeerInfoFile();
 
+			// Delete existing file if our hasFile property is 0
+			deleteExistingFile();
+
             // populate pieceList
             populatePieceList();
 		}
 		catch (Peer2PeerException e) {
-			System.out.println("Error encountered while processing configuration files: " + e.getMessage());
+			System.out.println("Error encountered while initializing: " + e.getMessage());
 			System.exit(1);
 		}
 
@@ -179,6 +185,29 @@ public class Peer2Peer {
             throw new Peer2PeerException("ERROR: Item number " + itemNumber + " must be an integer value");
         }
     }
+
+	// Create the peer directory, if it doesn't already exist
+	private void createPeerDirectory() throws Peer2PeerException {
+	    // Get a File for the directory
+		File f = new File("peer_" + peerId);
+
+		// Create the directory, if it doesn't already exist
+		f.mkdir();
+
+		// Throw an exception if the file is not a directory
+		if (f.exists() == true && f.isDirectory() == false) {
+		    throw new Peer2PeerException("ERROR: Peer directory exists as file and not as directory; please remove the file and recreate it as a directory");
+		}
+	}
+
+	// Delete existing file if our hasFile property is 0
+	private void deleteExistingFile() {
+		if (peerInfoList.getPeerInfo(peerId).getHasFile() == 0) {
+			System.out.println("Deleting file since our hasFile property is 0");
+			File file = new File("peer_" + peerId + System.getProperty("file.separator") + fileName);
+			file.delete();
+		}
+	}
 
     // Parse Common.cfg
     private void parseCommonConfigFile() throws Peer2PeerException {
@@ -357,6 +386,7 @@ public class Peer2Peer {
 	protected int getPeerId() {
 	    return peerId;
 	}
+
 
     public List<Integer> getDoNotHaveList(){
         return doNotHaveList;
