@@ -8,8 +8,9 @@ public class PieceMessageHandler extends MessageHandler{
 		PieceMessage pieceMessage = (PieceMessage)message;
 
 		System.out.println("PieceMessageHandler: from "+remotePeerId+" : "+ pieceMessage.toString());
-	
 
+		// Write to log
+		Peer2Peer.peer2Peer.writeToLog("Peer [peer_ID " + Peer2Peer.peer2Peer.getPeerId() + "] has downloaded the piece [piece " + pieceMessage.getPieceNumber() + "] from [peer_ID " + remotePeerId + "]. Now the number of pieces it has is [" + peerInfoList.getPeerInfo(Peer2Peer.peer2Peer.getPeerId()).getPieceList().size() + "].");
 
 		//get a handle on the peer thead that is handling this message.
 		PeerThread peerThread = peerInfoList.getPeerInfo(remotePeerId).getPeerThread();
