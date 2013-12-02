@@ -9,6 +9,10 @@ public class ChokeMessageHandler extends MessageHandler{
 
 		System.out.println("ChokeMessageHandler: "+ chokeMessage.toString());
 		System.out.println("ChokeMessageHandler: choked by "+remotePeerId+" : "+ chokeMessage.toString());
+
+        // Write to log
+		Peer2Peer.peer2Peer.writeToLog("Peer [peer_ID " + Peer2Peer.peer2Peer.getPeerId() + "] is choked by [peer_ID " + remotePeerId + "].");
+
 		//set that i was choked by them
 		peerInfoList.getPeerInfo(remotePeerId).setAmChokedBythem(true);
 

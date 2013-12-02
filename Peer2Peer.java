@@ -309,12 +309,12 @@ public class Peer2Peer {
         // Get current date and time
         GregorianCalendar date = new GregorianCalendar();
         int day = date.get(Calendar.DAY_OF_MONTH);
-        int month = date.get(Calendar.MONTH);
+        int month = date.get(Calendar.MONTH) + 1; // Month is zero-based
         int year = date.get(Calendar.YEAR);
         int second = date.get(Calendar.SECOND);
         int minute = date.get(Calendar.MINUTE);
         int hour = date.get(Calendar.HOUR_OF_DAY);
-        String timestamp = month + "/" + day + "/" + year + " " + hour + ":" + minute + ":" + second;
+        String timestamp = String.format("%02d/%02d/%04d %02d:%02d:%02d", month, day, year, hour, minute, second);
 
         // Write to the log and flush
 		try {
