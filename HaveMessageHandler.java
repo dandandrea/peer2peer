@@ -11,6 +11,9 @@ public class HaveMessageHandler extends MessageHandler{
 
                 int pieceToAdd = haveMessage.getHavePieceNumber();
 
+				// Write to log
+				Peer2Peer.peer2Peer.writeToLog("Peer [peer_ID " + Peer2Peer.peer2Peer.getPeerId() + "] received a 'have' message from [peer_ID " + remotePeerId + "] for the piece [piece " + pieceToAdd + "].");
+
                 System.out.println("HaveMessageHandler: pieceToAdd from "+ remotePeerId+ " is : "+ pieceToAdd);
                 //Do i know about the peer having this pieceToAdd?
                 if(getPeerInfoList().getPeerInfo(remotePeerId).getPieceList().contains(pieceToAdd)  == false){
