@@ -25,6 +25,25 @@ public class PieceMessageHandler extends MessageHandler{
 			{
 				PieceMessage mg = new PieceMessage(pieceMessage.toString(), pieceMessage.getFileSize(), pieceMessage.getPieceSize(), pieceMessage.getFileName() );
 			}
+			
+			// Increments the count of pieces received 
+			peerThread.getPeer2Peer().getUnchokeLock().lock();
+			try
+			{
+				int temp;
+				if (Peer2Peer.peer2Peer.getHashMap().get(remotePeerId) != null )
+				{	
+					temp = Peer2Peer.peer2Peer.getHashMap().get(remotePeerId);			
+					Peer2Peer.peer2Peer.getHashMap().remove(remotePeerId);
+					Peer2Peer.peer2Peer.getHashMap().put(remotePeerId,++temp);
+				}
+				//peerThread.setPieceCount(peerThread.getPieceCount() + 1);
+				//Peer2Peer.peer2Peer.getHashMap().put(remotePeerId,++peerThread.getPieceCount());
+			}
+			finally
+			{
+				peerThread.getPeer2Peer().getUnchokeLock().unlock();	
+			}
 
 			//update my pieceList
 			//System.out.println("PieceMessageHandler: adding piece to pieceList");
@@ -112,7 +131,7 @@ public class PieceMessageHandler extends MessageHandler{
 			//if i get a piece i wasnted expecting dont write it to my file, but do the following checks still
 			//release checkback in the piece i currently have requested.
 			//if im unchoked still
-				//request another piece
+			//request another piece
 			System.out.println("PieceMessageHandler: ERROR: I got a message that I wasn't expecting");
 		}
 	}

@@ -6,6 +6,7 @@ import java.nio.channels.FileChannel;
 
 public class Segmented
 {
+	// Gets the piece from file
 	public static String getPiece(String fileName, int pieceSize, int pieceNumber, int fileSize) 
 	{
 		System.out.println("Segmented: Inside getPiece Method " + fileName);
@@ -31,6 +32,7 @@ public class Segmented
 		return pieceDataString = new String(pieceData);
 	}
 
+	// Write's the piece to file
 	public static synchronized void writePiece(String fileName, int pieceSize, int pieceNumber, int fileSize, String piece)
 	{
 		String name = "peer_" + Peer2Peer.peer2Peer.getPeerId() + System.getProperty("file.separator") + Peer2Peer.peer2Peer.getFileName();
@@ -44,19 +46,13 @@ public class Segmented
 				buff.put(piece.getBytes()[i]);
 			} 
 		}
-		// buff.put(piece.getBytes());
 		buff.flip();
-
- 		//byte[] pieceData = piece.getBytes();
-
 
 		try
 		{
 			File createfile = new File(name);
 			RandomAccessFile file = new RandomAccessFile(name, "rw");
-			//file.skipBytes(pieceSize*pieceNumber);
 
- 			//file.write( piece.getBytes(), 0, pieceSize);
 			FileChannel writePiece = file.getChannel();
 			writePiece.lock();
 			writePiece.position((long)pieceSize*pieceNumber);

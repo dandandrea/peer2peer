@@ -22,6 +22,8 @@ public class PeerThread extends Thread {
 
 	private int requestedPiece;
 
+	private int pieceCount;
+
     // PeerThread constructor
     public PeerThread(int remotePeerId, int sleepMilliseconds) throws IOException {
         // Set the remote peer ID
@@ -362,5 +364,10 @@ public class PeerThread extends Thread {
 
 		// Return the message string list
 		return messageStringList;
+	}
+
+	public int getPieceCount()
+	{
+		return this.pieceCount;
 	}
 }

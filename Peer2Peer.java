@@ -17,8 +17,13 @@ public class Peer2Peer {
     private int fileSize;
     private int pieceSize;
 
+	// HashMap for calculations
+	private Map<Integer, Integer> numberOfPieces = new HashMap<Integer, Integer>();
+
     //lock for doNotHaveList
     private final ReentrantLock lock = new ReentrantLock();
+
+	private final ReentrantLock unchokeLock = new ReentrantLock();
 
     private List<Integer> doNotHaveList;
 
@@ -62,8 +67,11 @@ public class Peer2Peer {
 			// Delete existing file if our hasFile property is 0
 			deleteExistingFile();
 
-            // populate pieceList
+            // Populate pieceList
             populatePieceList();
+
+			// Add to HashMap
+			addToHashMap();
 		}
 		catch (Peer2PeerException e) {
 			System.out.println("Error encountered while initializing: " + e.getMessage());
@@ -277,6 +285,12 @@ public class Peer2Peer {
             }
 		}
 	}
+	
+	// Init HashMap
+	private void addToHashMap()
+	{
+		numberOfPieces.put(peerId,0);
+	}
 
     public int getNumberOfPieces(){
         return (int)Math.ceil((double)fileSize/(double)pieceSize);
@@ -338,10 +352,10 @@ public class Peer2Peer {
             List<Integer> canidateList = new ArrayList<Integer>();
 
             // check which pieces i need from remotePeer and add them to the canidateList
-            for(int pieceNumber: peerInfoList.getPeerInfo(remotePeer).getPieceList()){
+            for(int pieceNumber: peerInfoList.getPeerInfo(remotePeer).getPieceList()) {
 
                 //if remotePeer has a piece and This peer does not.
-                if(doNotHaveList.contains(pieceNumber) == true){
+                if(doNotHaveList.contains(pieceNumber) == true) {
                     
                     //add that piece to the canidateList
                     canidateList.add(pieceNumber);
@@ -418,33 +432,71 @@ public class Peer2Peer {
     public int getFileSize(){
         return fileSize;
     }
+	
+	public Map<Integer, Integer> getHashMap()
+	{
+		return this.numberOfPieces;
+	}
+	
+	public ReentrantLock getUnchokeLock()
+	{
+        return unchokeLock;
+    }
 
     //unchoke some neighbors
     private void unchokePreferredNeighbors(){
+		
+		//get the of interested peers which are canidates to be unchoked
+		List<Integer> toBeUnchokedList = peer2Peer.getPeerInfoList().getInterestedList();
 
-        //get the of interested peers which are canidates to be unchoked
-        List<Integer> toBeUnchokedList = peer2Peer.getPeerInfoList().getInterestedList();
+		if ( peer2Peer.getPeerInfoList().getPeerInfo(peerId).getPieceList().size() != peer2Peer.getNumberOfPieces() )
+		{
+			List<Integer> toBeUnchokedList2 = new ArrayList<Integer>();
+			int index =0;			
+			int max;
 
-        // while i have too make ppl to unchoke...remove 1
-        while(toBeUnchokedList.size() > peer2Peer.getNumberOfPreferredNeighbors()){
+			for(int i=0; i< peer2Peer.getNumberOfPreferredNeighbors(); i++)
+			{
+				max=0;
+				for (int j=0; j < 3; j++)
+				{
+					if (peer2Peer.getHashMap().get(peerInfoList.getPeerInfoByIndex(j)) != null)
+					{
+						if (peer2Peer.getHashMap().get(peerInfoList.getPeerInfoByIndex(j).getPeerId()) > max)
+						{
+							index = j;
+							max = peer2Peer.getHashMap().get(peerInfoList.getPeerInfoByIndex(j).getPeerId());
+						}
+					}
+				}
+				toBeUnchokedList2.add(index);
+				peer2Peer.getHashMap().remove(max);
+			}
+			toBeUnchokedList = toBeUnchokedList2;
+		}
+		else
+		{
+		    // while i have too make ppl to unchoke...remove 1
+		    while(toBeUnchokedList.size() > peer2Peer.getNumberOfPreferredNeighbors()) {
 
-            // this object can produce a random number.
-            Random rand = new Random();
+			    // this object can produce a random number.
+			    Random rand = new Random();
 
-            // start at 0 every random number generated.
-            int min = 0;
+			    // start at 0 every random number generated.
+			    int min = 0;
 
-            // gets the upper bound for the random number range.
-            int max = toBeUnchokedList.size()-1;
+			    // gets the upper bound for the random number range.
+			    int max = toBeUnchokedList.size()-1;
 
-            //get the index between 0 and max. 
-            int randomNumberIndex = rand.nextInt((max - min) + 1) + min;
+			    //get the index between 0 and max. 
+			    int randomNumberIndex = rand.nextInt((max - min) + 1) + min;
 
-            //System.out.println("randomNumberIndex:  "+randomNumberIndex);
-            
-            //remove that index from the list
-            toBeUnchokedList.remove(randomNumberIndex);
-        }
+			    //System.out.println("randomNumberIndex:  "+randomNumberIndex);
+			    
+			    //remove that index from the list
+			    toBeUnchokedList.remove(randomNumberIndex);
+			}
+		}
 
         //process unchokedList wrt all peers
         for(int i = 0 ; i < getPeerInfoList().getSize() ; i++){
@@ -486,6 +538,12 @@ public class Peer2Peer {
 
 	// Main entry point for running the peer2peer application from the command-line
     public static void main(String[] args) throws IOException, InterruptedException, ExecutionException, Peer2PeerException {
+		// Start Time variable
+		long startTime = System.currentTimeMillis();
+		
+		// End Time variable
+		long endTime;
+
 		// Get the peer ID from the command-line arguments
 		int peerId = getPeerIdFromArguments(args);
 
@@ -500,16 +558,21 @@ public class Peer2Peer {
 
 		// Start PeerThreads
 		peer2Peer.startPeerThreads();
-
         //TODO: while true needs to be if anyone needs a piece
-        while(true){
-            System.out.println("About to call unchokePreferredNeighbors()");
-            peer2Peer.unchokePreferredNeighbors();
+        while(true) {
 
-            System.out.println("Peer2Peer: pieceList:"+ peer2Peer.getPeerInfoList().getPeerInfo(peer2Peer.getPeerId()).getPieceList().toString());
-            System.out.println("Peer2Peer: doNotHaveList:"+peer2Peer.getDoNotHaveList().toString());
+			if ( (System.currentTimeMillis() - startTime)/1000 > 2 )
+			{
+		        System.out.println("About to call unchokePreferredNeighbors()");
+		        peer2Peer.unchokePreferredNeighbors();
 
-            peer2Peer.sleep(peer2Peer.getUnchokingInterval() * 1000);
+		        System.out.println("Peer2Peer: pieceList:"+ peer2Peer.getPeerInfoList().getPeerInfo(peer2Peer.getPeerId()).getPieceList().toString());
+		        System.out.println("Peer2Peer: doNotHaveList:"+peer2Peer.getDoNotHaveList().toString());
+
+		        peer2Peer.sleep(peer2Peer.getUnchokingInterval() * 1000);
+		
+				startTime = System.currentTimeMillis();
+			}
         }
 	}
 
