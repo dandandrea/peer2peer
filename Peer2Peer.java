@@ -463,7 +463,7 @@ public class Peer2Peer {
 			for(int i=0; i< peer2Peer.getNumberOfPreferredNeighbors(); i++)
 			{
 				max=0;
-				for (int j=0; j < 3; j++)
+				for (int j=0; j < peer2Peer.getPeerInfoList().getSize(); j++)
 				{
 					if (peer2Peer.getHashMap().get(peerInfoList.getPeerInfoByIndex(j)) != null)
 					{
@@ -584,8 +584,7 @@ public class Peer2Peer {
 
 	        peer2Peer.sleep(peer2Peer.getUnchokingInterval() * 1000);
 		
-			}
-        }
+		}
 	}
 
     // Method to clean-up sleeps (don't have to ugly our code with the try/catch)
