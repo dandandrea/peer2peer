@@ -56,9 +56,16 @@ public class UnchokeMessageHandler extends MessageHandler{
 			System.out.println("UnchokeMessageHandler: setting requestedPiece to:" +checkoutPiece);
 			peerThread.setRequestedPiece(checkoutPiece);
 
+		
 			if(checkoutPiece != -1){
+				peerThread.getLock().lock();
+				try{
 				//send a requestMessage
 				peerThread.sendMessage(new RequestMessage(checkoutPiece));
+				}
+				finally{
+					peerThread.getLock().unlock();
+				}
 			}
 		}
 	}

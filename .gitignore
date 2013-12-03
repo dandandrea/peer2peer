@@ -10,3 +10,6 @@
 
 # Log files
 *.log
+
+# We need different versions of this based on the machine we're running on
+PeerInfo.cfg
