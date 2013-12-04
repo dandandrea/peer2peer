@@ -32,11 +32,15 @@ public class PieceMessageHandler extends MessageHandler{
 			try
 			{
 				int temp;
+				System.out.println(" PieceMessageHandler: I am Before the If Statment " + Peer2Peer.peer2Peer.getPeerId());
 				if (Peer2Peer.peer2Peer.getHashMap().get(remotePeerId) != null )
 				{	
-					temp = Peer2Peer.peer2Peer.getHashMap().get(remotePeerId);			
-					Peer2Peer.peer2Peer.getHashMap().remove(remotePeerId);
-					Peer2Peer.peer2Peer.getHashMap().put(remotePeerId,++temp);
+					temp = Peer2Peer.peer2Peer.getHashMap().get(remotePeerId);	
+					System.out.println(" PieceMessageHandler: I am Inside If statement for HashMap " + temp);		
+					Peer2Peer.peer2Peer.getHashMap().put(remotePeerId,temp+1);
+					System.out.println(" PieceMessageHandler: print of HashMap contents " + Peer2Peer.peer2Peer.getHashMap().get(remotePeerId) );
+				} else {
+					System.out.println("ERROR: Unexpected state: Could not find peer in numberOfPieces");
 				}
 				//peerThread.setPieceCount(peerThread.getPieceCount() + 1);
 				//Peer2Peer.peer2Peer.getHashMap().put(remotePeerId,++peerThread.getPieceCount());

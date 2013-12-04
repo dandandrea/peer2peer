@@ -70,8 +70,8 @@ public class Peer2Peer {
             // Populate pieceList
             populatePieceList();
 
-			// Add to HashMap
-			addToHashMap();
+			// Big fat hack: Remove ourselves from numberOfPieces
+			numberOfPieces.remove(peerId);
 		}
 		catch (Peer2PeerException e) {
 			System.out.println("Error encountered while initializing: " + e.getMessage());
@@ -162,6 +162,9 @@ public class Peer2Peer {
             peerInfo.setPort(Integer.parseInt(parser.getParsedList().get(i).get(2)));
             peerInfo.setHasFile(Integer.parseInt(parser.getParsedList().get(i).get(3)));
             peerInfoList.add(peerInfo);
+
+			// Big fat hack: Add to numberOfPieces
+			addToHashMap(peerInfo.getPeerId());
         }
     }
 
@@ -287,7 +290,7 @@ public class Peer2Peer {
 	}
 	
 	// Init HashMap
-	private void addToHashMap()
+	private void addToHashMap(int peerId)
 	{
 		numberOfPieces.put(peerId,0);
 	}
@@ -448,110 +451,229 @@ public class Peer2Peer {
         return unchokeLock;
     }
 
-    //unchoke some neighbors
-    private void unchokePreferredNeighbors(){
+	private List<Integer> getPeersToUnchoke()
+	{
+		List<PeerPieceCount> sortedInterestedPeers = getSortedInterestedPeers();
+		System.out.println("sortedInterestedPeers: " + sortedInterestedPeers);
+		List<Integer> peersToUnchoke = new ArrayList<Integer>();
+
+		int peersAdded=0;
+
+		for(int i=0; i< sortedInterestedPeers.size(); i++)
+		{
+			peersToUnchoke.add(sortedInterestedPeers.get(i).getPeerId());
+			System.out.println("Added " + sortedInterestedPeers.get(i).getPeerId());
+			
+			peersAdded++;
+			
+			if(peersAdded > peer2Peer.getNumberOfPreferredNeighbors())
+			{
+				System.out.println("I added " + peer2Peer.getNumberOfPreferredNeighbors() + ", breaking");
+				break;
+			}
+		}
+
+		return peersToUnchoke;
+	}
+
+	private List<PeerPieceCount> getSortedInterestedPeers()
+	{
+		List<PeerPieceCount> interestedUnchokeList = new ArrayList<PeerPieceCount>();
+		Map<Integer, Integer> hashMap = peer2Peer.getHashMap();
+
+		List<PeerPieceCount> sortedInterestedPeers = sortHashMapByValues(hashMap);
+	
+		for( int i=0; i< sortedInterestedPeers.size(); i++)
+		{
+			System.out.println("Looking in PeerInfoList interestedList for " + sortedInterestedPeers.get(i).getPeerId());
+			if ( peer2Peer.getPeerInfoList().getInterestedList().contains(sortedInterestedPeers.get(i).getPeerId()))
+			{
+				interestedUnchokeList.add(sortedInterestedPeers.get(i));
+			}
+		}
+
+		System.out.println(" Peer2Peer: getSortedInterestedPeers: InterestedList " + peer2Peer.getPeerInfoList().getInterestedList());
+
+		System.out.println(" Peer2Peer: getSortedInterestedPeers: " + interestedUnchokeList);
+
+		return interestedUnchokeList;
+	}
+
+	private List<PeerPieceCount> sortHashMapByValues(Map<Integer,Integer> hashMap) 
+	{
+	   List<Integer> mapKeys = new ArrayList<Integer>(hashMap.keySet());
+	   //List mapValues = new ArrayList(hashMap.values());
+	   //Collections.sort(mapValues);
+	   //Collections.sort(mapKeys);
+	   List<PeerPieceCount> peerPieceCount = new ArrayList<PeerPieceCount>();
+
+	   System.out.println(" Peer2Peer: mapKeys: " + mapKeys);
+
+	   //Iterator valueIt = mapValues.iterator();
+
+	   for(int i=0; i < mapKeys.size(); i++)
+	   {
+	   		PeerPieceCount ppc = new PeerPieceCount(mapKeys.get(i), peer2Peer.getHashMap().get(mapKeys.get(i)));
+			peerPieceCount.add(ppc);
+	   }
+
+	   Collections.sort(peerPieceCount);
+	   System.out.println(" Peer2Peer: sortHashMapByValues: " + peerPieceCount);
+	   return peerPieceCount;
+   	}
+
+	private class PeerPieceCount implements Comparable<PeerPieceCount>
+	{
+		private int peerId;
+		private int count;
+
+		public PeerPieceCount(int peerId, int count)
+		{
+			this.peerId = peerId;
+			this.count = count;
+		}
+
+		public int compareTo(PeerPieceCount otherPeerPieceCount) {
+			if (otherPeerPieceCount.getCount() == count) {
+				return 0;
+			} 
+			else if (otherPeerPieceCount.getCount() > count) {
+				return 1;
+			} 
+			else {
+				return -1;
+			}
+		}
+
+		public int getPeerId()
+		{
+			return this.peerId;
+		}
 		
+		public int getCount()
+		{	
+			return this.count;
+		}
+
+		public String toString() {
+			return "<" + peerId + ", " + count + ">";
+		}
+	}
+
+    //unchoke some neighbors
+    private void unchokePreferredNeighbors()
+	{
 		//get the of interested peers which are canidates to be unchoked
-		List<Integer> toBeUnchokedList = peer2Peer.getPeerInfoList().getInterestedList();
+		List<Integer> toBeUnchokedList;
 
 		if ( peer2Peer.getPeerInfoList().getPeerInfo(peerId).getPieceList().size() != peer2Peer.getNumberOfPieces() )
 		{
-			List<Integer> toBeUnchokedList2 = new ArrayList<Integer>();
-			int index =0;			
-			int max;
-
-			for(int i=0; i< peer2Peer.getNumberOfPreferredNeighbors(); i++)
+			peer2Peer.getUnchokeLock().lock();
+			try
 			{
-				max=0;
-				for (int j=0; j < peer2Peer.getPeerInfoList().getSize(); j++)
+				toBeUnchokedList = getPeersToUnchoke();
+
+				System.out.println(" Peer2Peer: Inside Unchoke Neighbors ");
+				List<Integer> readdPeersList = new ArrayList<Integer>();
+		
+				System.out.println(" Peer2Peer: From unchokePreferredNeighbors: " + toBeUnchokedList);
+				
+				// Reset all of the peer piece counts
+				List<Integer> mapKeys = new ArrayList<Integer>(numberOfPieces.keySet());
+				for(int i=0; i < mapKeys.size(); i++)
 				{
-					if (peer2Peer.getHashMap().get(peerInfoList.getPeerInfoByIndex(j)) != null)
-					{
-						if (peer2Peer.getHashMap().get(peerInfoList.getPeerInfoByIndex(j).getPeerId()) > max)
-						{
-							index = j;
-							max = peer2Peer.getHashMap().get(peerInfoList.getPeerInfoByIndex(j).getPeerId());
-						}
-					}
+					System.out.println("Resetting piece count for " + mapKeys.get(i));
+					numberOfPieces.put(mapKeys.get(i), 0);
 				}
-				toBeUnchokedList2.add(index);
-				peer2Peer.getHashMap().remove(max);
 			}
-			toBeUnchokedList = toBeUnchokedList2;
+			finally
+			{
+				peer2Peer.getUnchokeLock().unlock();	
+			}
 		}
 		else
 		{
-		    // while i have too make ppl to unchoke...remove 1
-		    while(toBeUnchokedList.size() > peer2Peer.getNumberOfPreferredNeighbors()) {
+		//get the of interested peers which are canidates to be unchoked
+		toBeUnchokedList = peer2Peer.getPeerInfoList().getInterestedList();			
 
-			    // this object can produce a random number.
-			    Random rand = new Random();
+			// while i have too make ppl to unchoke...remove 1
+			while(toBeUnchokedList.size() > peer2Peer.getNumberOfPreferredNeighbors()) {
 
-			    // start at 0 every random number generated.
-			    int min = 0;
+				// this object can produce a random number.
+				Random rand = new Random();
 
-			    // gets the upper bound for the random number range.
-			    int max = toBeUnchokedList.size()-1;
+				// start at 0 every random number generated.
+				int min = 0;
 
-			    //get the index between 0 and max. 
-			    int randomNumberIndex = rand.nextInt((max - min) + 1) + min;
+				// gets the upper bound for the random number range.
+				int max = toBeUnchokedList.size()-1;
 
-			    //System.out.println("randomNumberIndex:  "+randomNumberIndex);
-			    
-			    //remove that index from the list
-			    toBeUnchokedList.remove(randomNumberIndex);
+				//get the index between 0 and max. 
+				int randomNumberIndex = rand.nextInt((max - min) + 1) + min;
+
+				//System.out.println("randomNumberIndex:  "+randomNumberIndex);
+				
+				//remove that index from the list
+				toBeUnchokedList.remove(randomNumberIndex);
 			}
 		}
 
-        //process unchokedList wrt all peers
-        for(int i = 0 ; i < getPeerInfoList().getSize() ; i++){
+	    //process unchokedList wrt all peers
+	    for(int i = 0 ; i < getPeerInfoList().getSize() ; i++)
+		{
 
-            PeerInfo peerInfo = getPeerInfoList().getPeerInfoByIndex(i);
+	        PeerInfo peerInfo = getPeerInfoList().getPeerInfoByIndex(i);
 
-            //System.out.println("I'm considering unchoking: "+peerInfo.getPeerId());
+	        //System.out.println("I'm considering unchoking: "+peerInfo.getPeerId());
 
-            //do i need to unchoke?
-            if(toBeUnchokedList.contains(peerInfo.getPeerId()) == true){
+	        //do i need to unchoke?
+	        if(toBeUnchokedList.contains(peerInfo.getPeerId()) == true){
 
-                //System.out.println(peerInfo.getPeerId() + " got lucky");
+	            //System.out.println(peerInfo.getPeerId() + " got lucky");
 
-                // are they currently choked
-                if(peerInfo.getIsChokedByMe() == true){
-                    //send them a unchoked message
-                    System.out.println("Peer2Peer: unchokePreferredNeighbors: Unchoking: "+ peerInfo.getPeerId());
-                    
-                    peerInfo.getPeerThread().getLock().lock();
-                    try{
-                        peerInfo.getPeerThread().sendMessage(new UnchokeMessage());
-                    }
-                    finally{
-                        peerInfo.getPeerThread().getLock().unlock();
-                    }
-                    //mark them as unchoked
-                    peerInfo.setIsChokedByMe(false);
-                }
-            }
-            else{
-                //System.out.println(peerInfo.getPeerId() + " didn't get lucky");
-                // are they currently unchoked
-                if(peerInfo.getIsChokedByMe() == false){
-                    System.out.println("Peer2Peer: unchokePreferredNeighbors: Choking: "+ peerInfo.getPeerId());
+	            // are they currently choked
+	            if(peerInfo.getIsChokedByMe() == true){
+	                //send them a unchoked message
+	                System.out.println("Peer2Peer: unchokePreferredNeighbors: Unchoking: "+ peerInfo.getPeerId());
+	                
 
-                    peerInfo.getPeerThread().getLock().lock();
-                    try{
-                        //send them a choked message
-                        peerInfo.getPeerThread().sendMessage(new ChokeMessage());
-                    }
-                    finally{
-                        peerInfo.getPeerThread().getLock().unlock();
-                    }
+					peerInfo.getPeerThread().getLock().lock();
+					try
+					{
+						if ( peerInfo.getPeerThread() != null )
+						{
+				            peerInfo.getPeerThread().sendMessage(new UnchokeMessage());
 
+							//mark them as unchoked
+			           	    peerInfo.setIsChokedByMe(false);
+						}
+					}
+					finally {
+						peerInfo.getPeerThread().getLock().unlock();
+					}
+	            }
+	        }
+	        else{
+	            //System.out.println(peerInfo.getPeerId() + " didn't get lucky");
+	            // are they currently unchoked
+	            if(peerInfo.getIsChokedByMe() == false){
+	                System.out.println("Peer2Peer: unchokePreferredNeighbors: Choking: "+ peerInfo.getPeerId());
 
-                    //mark them as choked
-                    peerInfo.setIsChokedByMe(true);
-                }
-            }
-        }
+					peerInfo.getPeerThread().getLock().lock();
+					try
+					{
+		                //send them a choked message
+		                peerInfo.getPeerThread().sendMessage(new ChokeMessage());
+					}
+					finally {
+						peerInfo.getPeerThread().getLock().unlock();
+					}
+
+	                //mark them as choked
+	                peerInfo.setIsChokedByMe(true);
+	            }
+	        }
+	    }
     }
 
 	// Main entry point for running the peer2peer application from the command-line
@@ -573,6 +695,8 @@ public class Peer2Peer {
 		peer2Peer.startPeerThreads();
         //TODO: while true needs to be if anyone needs a piece
         while(true) {
+	        
+			peer2Peer.sleep(peer2Peer.getUnchokingInterval() * 1000);
 
 	        System.out.println("About to call unchokePreferredNeighbors()");
 	        peer2Peer.unchokePreferredNeighbors();
@@ -582,7 +706,7 @@ public class Peer2Peer {
 	        System.out.println("Peer2Peer: pieceList:"+ peer2Peer.getPeerInfoList().getPeerInfo(peer2Peer.getPeerId()).getPieceList().toString());
 	        System.out.println("Peer2Peer: doNotHaveList:"+peer2Peer.getDoNotHaveList().toString());
 
-	        peer2Peer.sleep(peer2Peer.getUnchokingInterval() * 1000);
+
 		
 		}
 	}
