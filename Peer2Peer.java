@@ -593,8 +593,8 @@ public class Peer2Peer {
 		}
 		else
 		{
-		//get the of interested peers which are canidates to be unchoked
-		toBeUnchokedList = peer2Peer.getPeerInfoList().getInterestedList();			
+			//get the of interested peers which are canidates to be unchoked
+			toBeUnchokedList = peer2Peer.getPeerInfoList().getInterestedList();			
 
 			// while i have too make ppl to unchoke...remove 1
 			while(toBeUnchokedList.size() > peer2Peer.getNumberOfPreferredNeighbors()) {
@@ -676,6 +676,103 @@ public class Peer2Peer {
 	    }
     }
 
+	private void selectOptimisticUnchokeNeighbor()
+	{
+		//get the of interested peers which are canidates to be unchoked
+		List<Integer> unchokedList = peer2Peer.getPeerInfoList().getInterestedList();	
+
+		unchokedList = pickRandomPeersForOU(unchokedList);
+		System.out.println("Peer2Peer3: selectOptimisticUnchokeNeighbor: unchokeList contents" + unchokedList);
+		optimisticUnchokingNeighbor(unchokedList);
+	}
+
+	private List<Integer> pickRandomPeersForOU(List<Integer> unchokedList)
+	{
+		// while i have too make ppl to unchoke...remove 1
+		while(unchokedList.size() > 1) {
+
+			// this object can produce a random number.
+			Random rand = new Random();
+
+			// start at 0 every random number generated.
+			int min = 0;
+
+			// gets the upper bound for the random number range.
+			int max = unchokedList.size()-1;
+
+			//get the index between 0 and max. 
+			int randomNumberIndex = rand.nextInt((max - min) + 1) + min;
+
+			//System.out.println("randomNumberIndex:  "+randomNumberIndex);
+			
+			//remove that index from the list
+			unchokedList.remove(randomNumberIndex);
+		}
+
+		return unchokedList;
+	}
+
+	private void optimisticUnchokingNeighbor(List<Integer> toBeUnchokedList)
+	{
+		//process unchokedList wrt all peers
+	    for(int i = 0 ; i < getPeerInfoList().getSize() ; i++)
+		{
+
+	        PeerInfo peerInfo = getPeerInfoList().getPeerInfoByIndex(i);
+
+	        //System.out.println("I'm considering unchoking: "+peerInfo.getPeerId());
+
+	        //do i need to unchoke?
+	        if(toBeUnchokedList.contains(peerInfo.getPeerId()) == true){
+
+	            //System.out.println(peerInfo.getPeerId() + " got lucky");
+
+	            // are they currently choked
+	            if(peerInfo.getIsChokedByMe() == true){
+	                //send them a unchoked message
+	                System.out.println("Peer2Peer: unchokePreferredNeighbors: Unchoking: "+ peerInfo.getPeerId());
+	                
+
+					peerInfo.getPeerThread().getLock().lock();
+					try
+					{
+						if ( peerInfo.getPeerThread() != null )
+						{
+				            peerInfo.getPeerThread().sendMessage(new UnchokeMessage());
+
+							//mark them as unchoked
+			           	    peerInfo.setIsChokedByMe(false);
+						}
+					}
+					finally {
+						peerInfo.getPeerThread().getLock().unlock();
+					}
+	            }
+	        }
+	       /* else{
+	            //System.out.println(peerInfo.getPeerId() + " didn't get lucky");
+	            // are they currently unchoked
+	            if(peerInfo.getIsChokedByMe() == false){
+	                System.out.println("Peer2Peer: unchokePreferredNeighbors: Choking: "+ peerInfo.getPeerId());
+
+					peerInfo.getPeerThread().getLock().lock();
+					try
+					{
+		                //send them a choked message
+		                peerInfo.getPeerThread().sendMessage(new ChokeMessage());
+					}
+					finally {
+						peerInfo.getPeerThread().getLock().unlock();
+					}
+
+	                //mark them as choked
+	                peerInfo.setIsChokedByMe(true);
+	            }
+	        }*/
+	    }
+
+	}
+
 	// Main entry point for running the peer2peer application from the command-line
     public static void main(String[] args) throws IOException, InterruptedException, ExecutionException, Peer2PeerException {
 		
@@ -693,6 +790,10 @@ public class Peer2Peer {
 
 		// Start PeerThreads
 		peer2Peer.startPeerThreads();
+
+		// Start Timer
+		long startTime = System.currentTimeMillis();
+
         //TODO: while true needs to be if anyone needs a piece
         while(true) {
 	        
@@ -705,8 +806,15 @@ public class Peer2Peer {
 
 	        System.out.println("Peer2Peer: pieceList:"+ peer2Peer.getPeerInfoList().getPeerInfo(peer2Peer.getPeerId()).getPieceList().toString());
 	        System.out.println("Peer2Peer: doNotHaveList:"+peer2Peer.getDoNotHaveList().toString());
-
-
+			
+			long stat = (System.currentTimeMillis() - startTime);
+			System.out.println("Peer2Peer3: Before selectOptimisticUnchokeNeighbor()" + stat);
+			if ( (System.currentTimeMillis() - startTime) > peer2Peer.optimisticUnchokingInterval*1000 )
+			{
+			    System.out.println("Peer2Peer3: Inside if of selectOptimisticUnchokeNeighbor");
+				peer2Peer.selectOptimisticUnchokeNeighbor();
+				startTime = System.currentTimeMillis();
+			}
 		
 		}
 	}
