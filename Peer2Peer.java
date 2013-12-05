@@ -25,6 +25,9 @@ public class Peer2Peer {
 
 	private final ReentrantLock unchokeLock = new ReentrantLock();
 
+    // Lock for HaveMessageHandler
+	private final ReentrantLock haveLock = new ReentrantLock();
+
     private List<Integer> doNotHaveList;
 
     // PeerInfoList
@@ -419,6 +422,10 @@ public class Peer2Peer {
 
     public ReentrantLock getLock(){
         return lock;
+    }
+
+    public ReentrantLock getHaveLock() {
+        return haveLock;
     }
 
     public int getNumberOfPreferredNeighbors(){
@@ -824,6 +831,32 @@ public class Peer2Peer {
 			    System.out.println("Peer2Peer3: Inside if of selectOptimisticUnchokeNeighbor");
 				peer2Peer.selectOptimisticUnchokeNeighbor();
 				startTime = System.currentTimeMillis();
+
+                /*
+                // Big fat hack: Spam out HAVE messages to every peer
+                System.out.println("About to spam");
+                // For every peer...
+                for (int peerIndex = 0; peerIndex < peer2Peer.getPeerInfoList().getSize(); peerIndex++) {
+                    // For every piece we have...
+                    for (int pieceIndex = 0; pieceIndex < peer2Peer.getPeerInfoList().getPeerInfo(peer2Peer.getPeerId()).getPieceList().size(); pieceIndex++) {
+                        // Skip this peer if its PeerThread is null
+                        if (peer2Peer.getPeerInfoList().getPeerInfoByIndex(peerIndex).getPeerThread() == null) {
+                            System.out.println("Can't spam a null peer");
+                            continue;
+                        }
+
+                        // Send the message if we have this piece
+                        System.out.println("Spamming that we have piece " + pieceIndex + " to peer " + peer2Peer.getPeerInfoList().getPeerInfoByIndex(peerIndex).getPeerId());
+                        // peer2Peer.getLock().lock();
+                        // try {
+                        peer2Peer.getPeerInfoList().getPeerInfoByIndex(peerIndex).getPeerThread().sendMessage(new HaveMessage(peer2Peer.getPeerInfoList().getPeerInfo(peer2Peer.getPeerId()).getPieceList().get(pieceIndex)));
+                        // }
+                        // finally {
+                        //     peer2Peer.getLock().unlock();
+                        // }
+                    }
+                }
+                */
 			}
 
 			// Calculate the total number of pieces
@@ -843,10 +876,10 @@ public class Peer2Peer {
 			boolean allHaveAllPieces = true;
 			for (int i = 0; i < peer2Peer.getPeerInfoList().getSize(); i++) {
 			    // Does this peer have all of the pieces?
+                System.out.println("Done downloading? Peer ID " + peer2Peer.getPeerInfoList().getPeerInfoByIndex(i).getPeerId() + ": " + totalNumberOfPieces + " vs " + peer2Peer.getPeerInfoList().getPeerInfoByIndex(i).getPieceList().size());
 				if (peer2Peer.getPeerInfoList().getPeerInfoByIndex(i).getPieceList().size() != totalNumberOfPieces) {
 				    // A peer exists which does not have all of the pieces
 					allHaveAllPieces = false;
-					break;
 				}
 			}
 
@@ -859,7 +892,8 @@ public class Peer2Peer {
 		}
 
         // Made it here then call System.exit()
-		System.out.println("Exiting program");
+		System.out.println("Exiting program after a short delay");
+        sleep(5000);
 		System.exit(0);
 	}
 

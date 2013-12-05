@@ -71,9 +71,11 @@ public class PeerThread extends Thread {
 
 	// Thread.run()
 	public void run() {
-
 	    // Do we already have a connection or do we need to establish a connection?
 	    // Did the listener thread construct this item or did Peer2Peer?
+
+        // Calculate the total number of pieces
+        int totalNumberOfPieces = (int)Math.ceil((double)Peer2Peer.peer2Peer.getFileSize()/(double)Peer2Peer.peer2Peer.getPieceSize());
 
 	    //PeerThread is outbound
 		if (connection == null) {
@@ -104,12 +106,14 @@ public class PeerThread extends Thread {
 		    List<Integer> pieceList = Peer2Peer.peer2Peer.getPeerInfoList().getPeerInfo(Peer2Peer.peer2Peer.getPeerId()).getPieceList();
 		    
 		    // If pieceList isnt empty, send a bitfieldMessage.
-		    if(pieceList.size() >0){
+		    // if(pieceList.size() >0){
+		    if(pieceList.size() == totalNumberOfPieces){
 		    	connection.sendData(new BitfieldMessage(pieceList).toString());	
 				//connection.sendData(new BitfieldMessage(pieceList).toString());	
 			}
 			else{
 				System.out.println(Peer2Peer.peer2Peer.getPeerId()+" did not send BitfieldMessage");
+                sendHaveMessages();
 			}
 		}
 		//peerThread is inbound  ie. listenerThread spawned peerThread send a handShakeMessage
@@ -125,12 +129,15 @@ public class PeerThread extends Thread {
 
 			sleep(sleepMilliseconds * 2);
 			List<Integer> pieceList = Peer2Peer.peer2Peer.getPeerInfoList().getPeerInfo(Peer2Peer.peer2Peer.getPeerId()).getPieceList();
-		    if(pieceList.size() >0){
+
+		    // if(pieceList.size() >0){
+		    if(pieceList.size() == totalNumberOfPieces){
 				connection.sendData(new BitfieldMessage(pieceList).toString());	
 				//connection.sendData(new BitfieldMessage(pieceList).toString());
 			}
 			else{
 				System.out.println(Peer2Peer.peer2Peer.getPeerId()+" did not send BitfieldMessage");
+                sendHaveMessages();
 			}
 		}
 
@@ -194,6 +201,20 @@ public class PeerThread extends Thread {
 	public ReentrantLock getLock(){
 		return lock;
 	}
+
+    private void sendHaveMessages() {
+        // For every piece we have...
+        for (int pieceIndex = 0; pieceIndex < Peer2Peer.peer2Peer.getPeerInfoList().getPeerInfo(Peer2Peer.peer2Peer.getPeerId()).getPieceList().size(); pieceIndex++) {
+            Peer2Peer.peer2Peer.getLock().lock();
+            try {
+                System.out.println("Sending have message in lieu of bitfield message, saying that we have piece " + pieceIndex + " (to peer " + remotePeerId + ")");
+                Peer2Peer.peer2Peer.getPeerInfoList().getPeerInfo(remotePeerId).getPeerThread().sendMessage(new HaveMessage(Peer2Peer.peer2Peer.getPeerInfoList().getPeerInfo(Peer2Peer.peer2Peer.getPeerId()).getPieceList().get(pieceIndex)));
+            }
+            finally {
+                Peer2Peer.peer2Peer.getLock().unlock();
+            }
+        }
+    }
 
 	// Populate the message queue from inbound data.
 	private void populateInboundMessageQueue() throws Peer2PeerException {

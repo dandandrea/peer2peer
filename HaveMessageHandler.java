@@ -16,9 +16,15 @@ public class HaveMessageHandler extends MessageHandler{
 
                 System.out.println("HaveMessageHandler: pieceToAdd from "+ remotePeerId+ " is : "+ pieceToAdd);
                 //Do i know about the peer having this pieceToAdd?
-                if(peerInfoList.getPeerInfo(remotePeerId).getPieceList().contains(pieceToAdd)  == false){
-                        //add it to the pieceList
-                        peerInfoList.getPeerInfo(remotePeerId).getPieceList().add(pieceToAdd);
+                Peer2Peer.peer2Peer.getHaveLock().lock();
+                try {
+                    if(peerInfoList.getPeerInfo(remotePeerId).getPieceList().contains(pieceToAdd)  == false){
+                            //add it to the pieceList
+                            peerInfoList.getPeerInfo(remotePeerId).getPieceList().add(pieceToAdd);
+                    }
+                }
+                finally {
+                    Peer2Peer.peer2Peer.getHaveLock().unlock();
                 }
 
                 System.out.println("HaveMessageHandler:I"+Peer2Peer.peer2Peer.getPeerId()+" HAVE: "+peerInfoList.getPeerInfo(Peer2Peer.peer2Peer.getPeerId()).getPieceList());

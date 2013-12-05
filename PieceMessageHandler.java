@@ -55,11 +55,13 @@ public class PieceMessageHandler extends MessageHandler{
 
 
 			peerInfoList.getPeerInfo(peerThread.getPeer2Peer().getPeerId()).getLock().lock();
+            Peer2Peer.peer2Peer.getHaveLock().lock();
 			try{
 				peerInfoList.getPeerInfo(peerThread.getPeer2Peer().getPeerId()).getPieceList().add(requestPieceNumber);
 			}
 			finally{
 				peerInfoList.getPeerInfo(peerThread.getPeer2Peer().getPeerId()).getLock().unlock();
+                Peer2Peer.peer2Peer.getHaveLock().unlock();
 			}
 			//System.out.println("PieceMessageHandler: send HaveMesage to all other peers");
 

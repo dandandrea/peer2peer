@@ -11,15 +11,21 @@ public class BitfieldMessageHandler extends MessageHandler{
 
 		boolean interested = false;
 
-		for (int piece :  bitfieldMessage.getPieceList()){
-			System.out.println("bfmh: piece from "+ remotePeerId+ ": is : "+ piece);
-			if(getPeerInfoList().getPeerInfo(remotePeerId).getPieceList().contains(piece)  == false){
-				getPeerInfoList().getPeerInfo(remotePeerId).getPieceList().add(piece);
-			}
-			if(interested == false && getPeerInfoList().getPeerInfo(Peer2Peer.peer2Peer.getPeerId()).getPieceList().contains(piece) == false){
-				interested = true;
-			}
-		}
+        Peer2Peer.peer2Peer.getHaveLock().lock();
+        try {
+            for (int piece :  bitfieldMessage.getPieceList()){
+                System.out.println("bfmh: piece from "+ remotePeerId+ ": is : "+ piece);
+                if(getPeerInfoList().getPeerInfo(remotePeerId).getPieceList().contains(piece)  == false){
+                    getPeerInfoList().getPeerInfo(remotePeerId).getPieceList().add(piece);
+                }
+                if(interested == false && getPeerInfoList().getPeerInfo(Peer2Peer.peer2Peer.getPeerId()).getPieceList().contains(piece) == false){
+                    interested = true;
+                }
+            }
+        }
+        finally {
+            Peer2Peer.peer2Peer.getHaveLock().unlock();
+        }
 
 		peerInfoList.getPeerInfo(remotePeerId).getPeerThread().getLock().lock();
 		try{
