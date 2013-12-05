@@ -644,6 +644,9 @@ public class Peer2Peer {
 						{
 				            peerInfo.getPeerThread().sendMessage(new UnchokeMessage());
 
+							// Write to the log
+							writeToLog("Peer [peer_ID " + peerId + "] has the preferred neighbors " + toBeUnchokedList + ".");
+
 							//mark them as unchoked
 			           	    peerInfo.setIsChokedByMe(false);
 						}
@@ -740,6 +743,9 @@ public class Peer2Peer {
 						{
 				            peerInfo.getPeerThread().sendMessage(new UnchokeMessage());
 
+							// Write to log
+							writeToLog("Peer [peer_ID " + peerId + "] has the optimistically-unchoked neighbor [peer_ID " + peerInfo.getPeerId()  +"].");
+
 							//mark them as unchoked
 			           	    peerInfo.setIsChokedByMe(false);
 						}
@@ -794,7 +800,11 @@ public class Peer2Peer {
 		// Start Timer
 		long startTime = System.currentTimeMillis();
 
-        //TODO: while true needs to be if anyone needs a piece
+		// Only log that we are done downloading once
+		boolean doneDownloading = false;
+
+        // This is the main Peer2Peer loop
+		// We'll break out of this when we find out that everyone has all of the pieces
         while(true) {
 	        
 			peer2Peer.sleep(peer2Peer.getUnchokingInterval() * 1000);
@@ -815,8 +825,42 @@ public class Peer2Peer {
 				peer2Peer.selectOptimisticUnchokeNeighbor();
 				startTime = System.currentTimeMillis();
 			}
-		
+
+			// Calculate the total number of pieces
+			int totalNumberOfPieces = (int)Math.ceil((double)peer2Peer.getFileSize()/(double)peer2Peer.getPieceSize());
+
+			// Do I have all of the pieces?
+			if (doneDownloading == false && peer2Peer.getPeerInfoList().getPeerInfo(peerId).getPieceList().size() == totalNumberOfPieces) {
+			    // Done downloading
+				doneDownloading = true;
+
+				// Write to log
+				System.out.println("Done downloading");
+				peer2Peer.writeToLog("Peer [peer_ID " + peer2Peer.getPeerId() + "] has downloaded the complete file.");
+			}
+
+			// Does everyone have all of the pieces?
+			boolean allHaveAllPieces = true;
+			for (int i = 0; i < peer2Peer.getPeerInfoList().getSize(); i++) {
+			    // Does this peer have all of the pieces?
+				if (peer2Peer.getPeerInfoList().getPeerInfoByIndex(i).getPieceList().size() != totalNumberOfPieces) {
+				    // A peer exists which does not have all of the pieces
+					allHaveAllPieces = false;
+					break;
+				}
+			}
+
+			// Did everyone have all of the pieces? If so then break out of the main loop
+			if (allHaveAllPieces == true) {
+			    // Everyone has every piece, break
+				System.out.println("Everyone is done downloading");
+				break;
+			}
 		}
+
+        // Made it here then call System.exit()
+		System.out.println("Exiting program");
+		System.exit(0);
 	}
 
     // Method to clean-up sleeps (don't have to ugly our code with the try/catch)
